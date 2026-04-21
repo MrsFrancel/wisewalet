@@ -1,19 +1,34 @@
 import { DT, SavingsGoal } from "../types";
-import { fmtAmount, pct, fmtMonths, monthsFor } from "../utils/goalCalculations";
+import { fmtAmount, monthsFor } from "../utils/goalCalculations";
+import { matchTemplate } from "../constants/goalTemplates";
 
 type Props = {
   goals: SavingsGoal[];
+  declaredGoal: string;
   userName?: string;
+  suggestedMonthly?: number;
   onCTA: () => void;
   onDismiss: () => void;
 };
 
-/** cluster_3 Step 1 — Simulated reactivation email screen */
-export function ReactivationEmail({ goals, userName = "toi", onCTA, onDismiss }: Props) {
-  const topGoal = goals[0];
-  const totalSaved = goals.reduce((s, g) => s + g.currentAmount, 0);
-  const totalTarget = goals.reduce((s, g) => s + g.targetAmount, 0);
-  const globalPct = pct(totalSaved, totalTarget);
+/** cluster_3 Step 1 — Simulated reactivation email, personalised with declaredGoal */
+export function ReactivationEmail({
+  goals,
+  declaredGoal,
+  userName = "toi",
+  suggestedMonthly = 150,
+  onCTA,
+  onDismiss,
+}: Props) {
+  // Resolve template to get target amount & label
+  const tpl = matchTemplate(declaredGoal);
+  const targetAmount = tpl.amounts["medium"];
+  const monthsNeeded = suggestedMonthly > 0 ? Math.ceil(targetAmount / suggestedMonthly) : 12;
+
+  // Human-readable goal label from template or raw string
+  const goalLabel = tpl.name !== "Mon objectif"
+    ? tpl.name.replace("Mon ", "").replace("Ma ", "").toLowerCase()
+    : declaredGoal;
 
   return (
     <div
@@ -25,7 +40,7 @@ export function ReactivationEmail({ goals, userName = "toi", onCTA, onDismiss }:
         overflowY: "auto",
       }}
     >
-      {/* Email chrome bar */}
+      {/* Email chrome */}
       <div
         style={{
           background: DT.surface,
@@ -38,16 +53,16 @@ export function ReactivationEmail({ goals, userName = "toi", onCTA, onDismiss }:
           De : WiseWallet &lt;hello@wisewallet.app&gt;
         </div>
         <div style={{ fontSize: 13, fontWeight: 700, color: DT.text }}>
-          💸 {userName}, tes économies t'attendent…
+          {tpl.emoji} {userName}, ton {goalLabel} t'attend toujours…
         </div>
         <div style={{ fontSize: 11, color: DT.text2, marginTop: 2 }}>
           Aujourd'hui, 09:42
         </div>
       </div>
 
-      {/* Email body */}
+      {/* Body */}
       <div style={{ flex: 1, padding: "0 16px 24px" }}>
-        {/* Hero */}
+        {/* Hero gradient */}
         <div
           style={{
             background: `linear-gradient(135deg, ${DT.primary}, #9B93FF)`,
@@ -58,18 +73,30 @@ export function ReactivationEmail({ goals, userName = "toi", onCTA, onDismiss }:
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
-          <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>
-            On te cherchait !
+          <div style={{ fontSize: 40, marginBottom: 10 }}>{tpl.emoji}</div>
+          <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 10 }}>
+            Tu voulais {goalLabel}.
           </div>
-          <div style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.5 }}>
-            Ça fait un moment qu'on ne t'a pas vu.
-            Tes projets d'épargne ont besoin de toi.
+          {/* KEY sentence from Notion spec */}
+          <div
+            style={{
+              fontSize: 15,
+              lineHeight: 1.6,
+              background: "rgba(255,255,255,0.15)",
+              borderRadius: 12,
+              padding: "12px 16px",
+            }}
+          >
+            Sais-tu qu'en épargnant{" "}
+            <strong>{fmtAmount(suggestedMonthly)}/mois</strong>, tu y arrives en{" "}
+            <strong>{monthsNeeded} mois</strong> ?
+            <br />
+            On t'a préparé un plan.
           </div>
         </div>
 
-        {/* Progress summary */}
-        {topGoal && (
+        {/* Existing goals recap — only if goals exist */}
+        {goals.length > 0 && (
           <div
             style={{
               background: DT.surface,
@@ -80,72 +107,29 @@ export function ReactivationEmail({ goals, userName = "toi", onCTA, onDismiss }:
             }}
           >
             <div style={{ fontSize: 13, color: DT.text2, marginBottom: 12 }}>
-              Voici où en sont tes projets
+              Tes projets en cours
             </div>
-
             {goals.slice(0, 3).map((goal) => {
-              const p = pct(goal.currentAmount, goal.targetAmount);
               const ml = monthsFor(goal.targetAmount, goal.currentAmount, goal.monthlyAmount);
               return (
-                <div key={goal.id} style={{ marginBottom: 14 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: 4,
-                    }}
-                  >
-                    <span style={{ fontSize: 13, fontWeight: 600, color: DT.text }}>
-                      {goal.emoji} {goal.name}
-                    </span>
-                    <span style={{ fontSize: 13, color: DT.text2 }}>
-                      {fmtAmount(goal.currentAmount)} / {fmtAmount(goal.targetAmount)}
-                    </span>
+                <div key={goal.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 18 }}>{goal.emoji}</span>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: DT.text }}>{goal.name}</div>
+                      <div style={{ fontSize: 11, color: DT.text2 }}>encore {ml} mois</div>
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      height: 6,
-                      background: DT.border,
-                      borderRadius: 3,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${p}%`,
-                        background: DT.primary,
-                        borderRadius: 3,
-                      }}
-                    />
-                  </div>
-                  <div
-                    style={{ fontSize: 11, color: DT.text2, marginTop: 3 }}
-                  >
-                    {p}% · encore {fmtMonths(ml)}
+                  <div style={{ fontSize: 13, fontWeight: 700, color: DT.primary }}>
+                    {fmtAmount(goal.monthlyAmount)}/mois
                   </div>
                 </div>
               );
             })}
-
-            <div
-              style={{
-                marginTop: 8,
-                padding: "10px 14px",
-                background: DT.primaryLight,
-                borderRadius: 10,
-                fontSize: 13,
-                color: DT.primary,
-                fontWeight: 600,
-                textAlign: "center",
-              }}
-            >
-              Total épargné : {fmtAmount(totalSaved)} sur {fmtAmount(totalTarget)} ({globalPct}%)
-            </div>
           </div>
         )}
 
-        {/* Motivational block */}
+        {/* Highlight card matching Notion spec message style */}
         <div
           style={{
             background: DT.surface,
@@ -153,16 +137,30 @@ export function ReactivationEmail({ goals, userName = "toi", onCTA, onDismiss }:
             padding: 20,
             marginBottom: 20,
             boxShadow: DT.cardShadow,
+            borderLeft: `4px solid ${DT.primary}`,
           }}
         >
-          <div style={{ fontSize: 20, marginBottom: 8 }}>🎯</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: DT.text, marginBottom: 6 }}>
-            Ne laisse pas tes projets s'endormir
+          <div style={{ fontSize: 14, fontWeight: 700, color: DT.text, marginBottom: 8 }}>
+            📊 Ton plan en un coup d'œil
           </div>
-          <div style={{ fontSize: 13, color: DT.text2, lineHeight: 1.6 }}>
-            Chaque mois sans épargne, c'est du temps perdu.
-            Reprends là où tu t'es arrêté — on t'aide à te remettre sur les rails.
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <div>
+              <div style={{ fontSize: 11, color: DT.text2 }}>Objectif</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: DT.text }}>{fmtAmount(targetAmount)}</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 11, color: DT.text2 }}>Effort mensuel</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: DT.primary }}>{fmtAmount(suggestedMonthly)}/mois</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 11, color: DT.text2 }}>Durée</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: DT.text }}>{monthsNeeded} mois</div>
+            </div>
           </div>
+          <div style={{ height: 6, background: DT.border, borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: "0%", background: DT.primary, borderRadius: 3 }} />
+          </div>
+          <div style={{ fontSize: 11, color: DT.text2, marginTop: 4 }}>Départ : maintenant 🚀</div>
         </div>
 
         {/* CTA */}

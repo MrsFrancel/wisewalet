@@ -4,8 +4,9 @@ import { AIGoalSuggestionModal } from "../screens/AIGoalSuggestionModal";
 import { AIGoalEnrichment } from "../screens/AIGoalEnrichment";
 import { AddMoreProjects } from "../screens/AddMoreProjects";
 import { ReactivationEmail } from "../screens/ReactivationEmail";
-import { ReactivationQuiz } from "../screens/ReactivationQuiz";
+import { ReactivationQuiz, type QuizResult } from "../screens/ReactivationQuiz";
 import { AllocationPlan } from "../screens/AllocationPlan";
+import { V3GoalDetail } from "../screens/V3GoalDetail";
 import { GoalCardV3 } from "../components/GoalCardV3";
 import { ProgressNotificationBanner } from "../components/ProgressNotificationBanner";
 import type { SavingsGoal, UserState, IncomeBracket, Cluster } from "../types";
@@ -953,8 +954,10 @@ function GoalsScreen({
       {showNotif && notifGoal && (
         <ProgressNotificationBanner
           goal={notifGoal}
+          monthlySaved={notifGoal.monthlyAmount}
           onDismiss={onDismissNotif}
           onAction={() => { onDismissNotif(); onGoalPress(notifGoal); }}
+          onAdjust={() => { onDismissNotif(); onGoalPress(notifGoal); }}
         />
       )}
 
@@ -1777,13 +1780,17 @@ export default function App() {
     setScreen("addMoreProjects");
   };
 
-  // Reactivation flow: quiz complete → allocation plan
-  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
-
-  const handleQuizComplete = (answers: Record<string, string>) => {
-    setQuizAnswers(answers);
-    const monthly = parseInt(answers["amount"] || "150", 10);
-    setTotalMonthlyBudget(monthly);
+  // Reactivation flow: quiz complete → build goals → allocation plan
+  const handleQuizComplete = (result: QuizResult) => {
+    setTotalMonthlyBudget(result.monthly);
+    // Build one SavingsGoal per selected project with the chosen budget
+    const newGoals: SavingsGoal[] = result.projects.map((key, i) => {
+      const base = buildPrefillGoal(key, incomeBracket, Math.round(result.monthly / result.projects.length));
+      const chosenBudget = result.budgets[key] ?? base.targetAmount;
+      return { ...base, targetAmount: chosenBudget, priority: i + 1 };
+    });
+    setSavingsGoals(allocateBudget(newGoals, result.monthly));
+    setSavingsGoalCreated(true);
     setScreen("allocationPlan");
   };
 
@@ -1871,7 +1878,31 @@ export default function App() {
           onCreated={() => { setSavingsGoalCreated(true); setPrefill(null); }}
         />
       );
-      case "goalDetail": return <GoalDetailScreen go={go} goal={activeGoal} />;
+      case "goalDetail": {
+        // If a V3 goal is selected, show the V3 detail screen with persistent AI button
+        const v3Goal = activeV3GoalId ? savingsGoals.find((g) => g.id === activeV3GoalId) : null;
+        if (v3Goal) {
+          return (
+            <V3GoalDetail
+              goal={v3Goal}
+              onBack={() => go("goals")}
+              onRefineAI={() => {
+                setDeclaredGoal(v3Goal.name);
+                go("aiGoalEnrichment");
+              }}
+              onMonthlyChange={(newMonthly) => {
+                setSavingsGoals((prev) =>
+                  allocateBudget(
+                    prev.map((g) => g.id === v3Goal.id ? { ...g, monthlyAmount: newMonthly } : g),
+                    totalMonthlyBudget,
+                  )
+                );
+              }}
+            />
+          );
+        }
+        return <GoalDetailScreen go={go} goal={activeGoal} />;
+      }
       case "analysis": return <AnalysisScreen go={go} />;
       case "notifications": return <NotificationsScreen go={go} firstName={firstName} />;
       case "profile": return <ProfileScreen go={go} firstName={firstName} />;
@@ -1979,7 +2010,9 @@ export default function App() {
         return (
           <ReactivationEmail
             goals={savingsGoals}
+            declaredGoal={declaredGoal}
             userName={firstName}
+            suggestedMonthly={150}
             onCTA={() => { playClick(); go("reactivationQuiz"); }}
             onDismiss={() => go("home")}
           />
