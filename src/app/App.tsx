@@ -1,4 +1,16 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+// ── V3 screens & components ───────────────────────────────────────────────
+import { AIGoalSuggestionModal } from "../screens/AIGoalSuggestionModal";
+import { AIGoalEnrichment } from "../screens/AIGoalEnrichment";
+import { AddMoreProjects } from "../screens/AddMoreProjects";
+import { ReactivationEmail } from "../screens/ReactivationEmail";
+import { ReactivationQuiz } from "../screens/ReactivationQuiz";
+import { AllocationPlan } from "../screens/AllocationPlan";
+import { GoalCardV3 } from "../components/GoalCardV3";
+import { ProgressNotificationBanner } from "../components/ProgressNotificationBanner";
+import type { SavingsGoal, UserState, IncomeBracket, Cluster } from "../types";
+import { buildPrefillGoal, matchTemplate, GOAL_TILES } from "../constants/goalTemplates";
+import { allocateBudget, fmtAmount as fmtAmt, pct as calcPct } from "../utils/goalCalculations";
 import confetti from "canvas-confetti";
 import {
   ArrowLeft, Bell, ArrowUpRight, ArrowDownLeft, Target, MoreHorizontal,
@@ -13,7 +25,10 @@ type LucideIcon = React.ComponentType<{ size?: number; color?: string; strokeWid
 type Screen =
   | "welcome" | "signup" | "home" | "transactions" | "txDetail"
   | "goals" | "goalStep1" | "goalStep2" | "goalStep3" | "goalCreated"
-  | "goalDetail" | "analysis" | "notifications" | "profile";
+  | "goalDetail" | "analysis" | "notifications" | "profile"
+  // V3 screens
+  | "aiGoalSuggestion" | "aiGoalEnrichment" | "addMoreProjects"
+  | "reactivationEmail" | "reactivationQuiz" | "allocationPlan";
 
 const C = {
   bg: "#F5F5F5",
@@ -905,30 +920,111 @@ function TxDetailScreen({ go, onConfirm }: { go: (s: Screen) => void; onConfirm:
   );
 }
 
-function GoalsScreen({ go, goals }: { go: (s: Screen) => void; goals: Goal[] }) {
+function GoalsScreen({
+  go, goals, savingsGoals, onGoalPress, cluster, showNotif, notifGoal, onDismissNotif,
+}: {
+  go: (s: Screen) => void;
+  goals: Goal[];
+  savingsGoals: SavingsGoal[];
+  onGoalPress: (g: SavingsGoal) => void;
+  cluster: Cluster;
+  showNotif: boolean;
+  notifGoal: SavingsGoal | null;
+  onDismissNotif: () => void;
+}) {
   const pop = [
     { icon: Plane, t: "Voyage", a: "1 500€" },
     { icon: Car, t: "Voiture", a: "5 000€" },
     { icon: Building, t: "Apport", a: "20 000€" },
   ];
+
+  // V3: cluster_2 sees AI goal creation flow; cluster_3 sees reactivation flow
+  const handleCreateGoal = () => {
+    if (cluster === "cluster_2") {
+      go("aiGoalSuggestion");
+    } else {
+      go("reactivationEmail");
+    }
+  };
+
   return (
-    <div className="flex flex-col h-full screen-enter" style={{ background: C.bg }}>
+    <div className="flex flex-col h-full screen-enter" style={{ background: C.bg, position: "relative" }}>
+      {/* Progress notification banner */}
+      {showNotif && notifGoal && (
+        <ProgressNotificationBanner
+          goal={notifGoal}
+          onDismiss={onDismissNotif}
+          onAction={() => { onDismissNotif(); onGoalPress(notifGoal); }}
+        />
+      )}
+
       <StatusBar />
       <div className="px-6 pt-2 pb-2">
-        <div style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }}>Mes Objectifs</div>
-        <div style={{ color: C.text2, fontSize: 15 }} className="mt-1">Épargnez avec intention</div>
+        <div style={{ color: C.text, fontSize: 28, fontWeight: 700, fontFamily: "Brunson, sans-serif" }}>
+          {savingsGoals.length > 0 ? "Mes Projets" : "Mes Objectifs"}
+        </div>
+        <div style={{ color: C.text2, fontSize: 15 }} className="mt-1">
+          {savingsGoals.length > 0
+            ? `${savingsGoals.length} projet${savingsGoals.length > 1 ? "s" : ""} en cours`
+            : "Épargnez avec intention"}
+        </div>
       </div>
+
       <ScreenBody>
-        {goals.length === 0 ? (
+        {/* V3 savings goals section */}
+        {savingsGoals.length > 0 ? (
+          <div className="px-4 space-y-3">
+            {savingsGoals.map((sg) => (
+              <GoalCardV3
+                key={sg.id}
+                goal={sg}
+                onPress={() => { playClick(); onGoalPress(sg); }}
+              />
+            ))}
+
+            {/* Add more projects CTA */}
+            <button
+              onClick={() => { playClick(); go("addMoreProjects"); }}
+              style={{
+                width: "100%",
+                padding: "14px 0",
+                borderRadius: 14,
+                background: "transparent",
+                border: `1.5px dashed ${V2C.primary}`,
+                color: V2C.primary,
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+                marginTop: 4,
+              }}
+            >
+              + Ajouter un projet
+            </button>
+
+            {/* Classic goals (V1/V2) below, if any */}
+            {goals.length > 0 && (
+              <div className="mt-4">
+                <div style={{ color: C.text2, fontSize: 11, letterSpacing: 1, marginBottom: 8 }}>
+                  OBJECTIFS CLASSIQUES
+                </div>
+                {goals.map((g) => <GoalCard key={g.id} g={g} onClick={() => go("goalDetail")} />)}
+              </div>
+            )}
+          </div>
+        ) : goals.length === 0 ? (
           <>
             <div className="px-6 mt-8 flex flex-col items-center text-center">
               <Target size={64} color={C.primary} strokeWidth={1} fill="none" />
-              <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-4">Vous n'avez pas encore d'objectif</div>
+              <div style={{ color: C.text, fontSize: 22, fontWeight: 600, fontFamily: "Brunson, sans-serif" }} className="mt-4">
+                Vous n'avez pas encore d'objectif
+              </div>
               <div style={{ color: C.text2, fontSize: 13 }} className="mt-2 max-w-[280px]">
                 Les utilisateurs avec un objectif épargnent 3x plus
               </div>
               <div className="w-full mt-6">
-                <PrimaryButton onClick={() => go("goalStep1")}>Créer un objectif</PrimaryButton>
+                <PrimaryButton onClick={() => { playClick(); handleCreateGoal(); }}>
+                  {cluster === "cluster_2" ? "Créer mon projet ✨" : "Reprendre mes projets"}
+                </PrimaryButton>
               </div>
             </div>
             <div className="mt-8">
@@ -937,12 +1033,12 @@ function GoalsScreen({ go, goals }: { go: (s: Screen) => void; goals: Goal[] }) 
                 {pop.map((p) => {
                   const PIcon = p.icon;
                   return (
-                  <button key={p.t} onClick={() => go("goalStep1")} className="rounded-[20px] p-4 shrink-0 text-left transition active:scale-[0.98]"
-                    style={{ background: C.card, width: 160, boxShadow: SHADOW }}>
-                    <PIcon size={32} color={C.secondary} strokeWidth={STROKE} fill="none" />
-                    <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-3">{p.t}</div>
-                    <div style={{ color: C.text2, fontSize: 12 }} className="mt-1">{p.a}</div>
-                  </button>
+                    <button key={p.t} onClick={() => { playClick(); handleCreateGoal(); }} className="rounded-[20px] p-4 shrink-0 text-left transition active:scale-[0.98]"
+                      style={{ background: C.card, width: 160, boxShadow: SHADOW }}>
+                      <PIcon size={32} color={C.secondary} strokeWidth={STROKE} fill="none" />
+                      <div style={{ color: C.text, fontSize: 18, fontWeight: 600, fontFamily: "Brunson, sans-serif" }} className="mt-3">{p.t}</div>
+                      <div style={{ color: C.text2, fontSize: 12 }} className="mt-1">{p.a}</div>
+                    </button>
                   );
                 })}
               </div>
@@ -951,7 +1047,7 @@ function GoalsScreen({ go, goals }: { go: (s: Screen) => void; goals: Goal[] }) 
         ) : (
           <div className="px-6">
             <div className="mb-4">
-              <PrimaryButton onClick={() => go("goalStep1")}>Créer un objectif</PrimaryButton>
+              <PrimaryButton onClick={() => { playClick(); go("goalStep1"); }}>Créer un objectif</PrimaryButton>
             </div>
             <div className="space-y-3">
               {goals.map((g) => <GoalCard key={g.id} g={g} onClick={() => go("goalDetail")} />)}
@@ -1627,6 +1723,70 @@ export default function App() {
   const [suggestionCategory, setSuggestionCategory] = useState("Alimentation");
   const [prefill, setPrefill] = useState<GoalSuggestion | null>(null);
 
+  // ── V3 state ──────────────────────────────────────────────────────────────
+  // Demo: change cluster to "cluster_3" to test reactivation flow
+  const [cluster] = useState<Cluster>("cluster_2");
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+  const [totalMonthlyBudget, setTotalMonthlyBudget] = useState(200);
+  const [declaredGoal, setDeclaredGoal] = useState("voyage");
+  const [incomeBracket] = useState<IncomeBracket>("medium");
+  const [activeV3GoalId, setActiveV3GoalId] = useState<string | null>(null);
+  const [pendingV3Goal, setPendingV3Goal] = useState<SavingsGoal | null>(null);
+  const [showNotif, setShowNotif] = useState(false);
+  const [notifGoal, setNotifGoal] = useState<SavingsGoal | null>(null);
+
+  // V3 userState object for child components
+  const userState: UserState = {
+    cluster,
+    savingsGoalCreated: savingsGoals.length > 0,
+    goalsCount: savingsGoals.length,
+    goals: savingsGoals,
+    totalMonthlyBudget,
+    declaredGoal,
+    incomeBracket,
+    age: userAge,
+    firstTransactionCategorized: savingsGoalCreated,
+    firstTransactionDate: null,
+    lastActiveDate: null,
+    dismissedSuggestionCount: dismissedCount,
+    reactivationEmailSent: false,
+  };
+
+  // Add a V3 savings goal (from enrichment or tile selection)
+  const addSavingsGoal = (goal: SavingsGoal) => {
+    setSavingsGoals((prev) => {
+      const updated = [...prev, { ...goal, priority: prev.length + 1 }];
+      return allocateBudget(updated, totalMonthlyBudget);
+    });
+    setActiveV3GoalId(goal.id);
+  };
+
+  // Show notification after goal created
+  const triggerNotif = (goal: SavingsGoal) => {
+    setNotifGoal(goal);
+    setTimeout(() => setShowNotif(true), 500);
+    setTimeout(() => setShowNotif(false), 6000);
+  };
+
+  // V3 AI flow: user completes enrichment → create goal → show AddMoreProjects
+  const handleV3GoalComplete = (goal: SavingsGoal) => {
+    addSavingsGoal(goal);
+    setPendingV3Goal(goal);
+    setSavingsGoalCreated(true);
+    playCoins();
+    setScreen("addMoreProjects");
+  };
+
+  // Reactivation flow: quiz complete → allocation plan
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
+
+  const handleQuizComplete = (answers: Record<string, string>) => {
+    setQuizAnswers(answers);
+    const monthly = parseInt(answers["amount"] || "150", 10);
+    setTotalMonthlyBudget(monthly);
+    setScreen("allocationPlan");
+  };
+
   const go = (s: Screen) => {
     if (s === "goalStep1" && !prefill) setDraft({});
     setScreen(s);
@@ -1689,7 +1849,18 @@ export default function App() {
       case "home": return <HomeScreen go={go} firstName={firstName} goals={goals} />;
       case "transactions": return <TransactionsScreen go={go} />;
       case "txDetail": return <TxDetailScreen go={go} onConfirm={handleTxConfirm} />;
-      case "goals": return <GoalsScreen go={go} goals={goals} />;
+      case "goals": return (
+        <GoalsScreen
+          go={go}
+          goals={goals}
+          savingsGoals={savingsGoals}
+          onGoalPress={(g) => { setActiveV3GoalId(g.id); go("goalDetail"); }}
+          cluster={cluster}
+          showNotif={showNotif}
+          notifGoal={notifGoal}
+          onDismissNotif={() => setShowNotif(false)}
+        />
+      );
       case "goalStep1": return <GoalStep1 go={go} draft={draft} setDraft={setDraft} prefill={prefill} />;
       case "goalStep2": return <GoalStep2 go={go} draft={draft} setDraft={setDraft} />;
       case "goalStep3": return <GoalStep3 go={go} draft={draft} onCreate={onCreate} />;
@@ -1704,6 +1875,139 @@ export default function App() {
       case "analysis": return <AnalysisScreen go={go} />;
       case "notifications": return <NotificationsScreen go={go} firstName={firstName} />;
       case "profile": return <ProfileScreen go={go} firstName={firstName} />;
+
+      // ── V3 screens ─────────────────────────────────────────────────────────
+      case "aiGoalSuggestion": {
+        const preGoal = buildPrefillGoal(declaredGoal, incomeBracket, totalMonthlyBudget);
+        return (
+          <div className="flex flex-col h-full" style={{ background: V2C.bg }}>
+            <StatusBar />
+            <div className="flex items-center gap-3 px-4 pt-2 pb-3">
+              <button onClick={() => go("goals")} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: V2C.text }}>←</button>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: V2C.text }}>Nouveau projet ✨</div>
+                <div style={{ fontSize: 12, color: V2C.text2 }}>Personnalisé pour vous</div>
+              </div>
+            </div>
+
+            {/* Goal tile picker */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "0 16px" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: V2C.text, marginBottom: 12 }}>
+                Quel est votre projet ?
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+                {GOAL_TILES.map((tile) => {
+                  const isSelected = declaredGoal === tile.key;
+                  return (
+                    <button
+                      key={tile.key}
+                      onClick={() => { playClick(); setDeclaredGoal(tile.key); }}
+                      style={{
+                        padding: "16px 10px",
+                        borderRadius: 16,
+                        border: `2px solid ${isSelected ? V2C.primary : V2C.border}`,
+                        background: isSelected ? V2C.primaryLight : "#fff",
+                        textAlign: "center",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      <div style={{ fontSize: 26, marginBottom: 6 }}>{tile.emoji}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: isSelected ? V2C.primary : V2C.text }}>{tile.label}</div>
+                      <div style={{ fontSize: 11, color: V2C.text2 }}>~{fmtAmt(tile.amount)} €</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ padding: "12px 20px 28px", background: "#fff", boxShadow: "0 -1px 0 " + V2C.border }}>
+              <button
+                onClick={() => { playClick(); go("aiGoalEnrichment"); }}
+                style={{
+                  width: "100%", padding: "15px 0", borderRadius: 14,
+                  background: V2C.primary, color: "#fff", fontSize: 16, fontWeight: 700,
+                  border: "none", cursor: "pointer", marginBottom: 10,
+                }}
+              >
+                Affiner avec l'IA ✨
+              </button>
+              <button
+                onClick={() => {
+                  playClick();
+                  const goal = buildPrefillGoal(declaredGoal, incomeBracket, totalMonthlyBudget);
+                  handleV3GoalComplete(goal);
+                }}
+                style={{
+                  width: "100%", padding: "13px 0", borderRadius: 14,
+                  background: "transparent", color: V2C.primary, fontSize: 14, fontWeight: 600,
+                  border: `1.5px solid ${V2C.primary}`, cursor: "pointer",
+                }}
+              >
+                Accepter la suggestion
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      case "aiGoalEnrichment":
+        return (
+          <AIGoalEnrichment
+            userState={{ ...userState, declaredGoal }}
+            onComplete={(goal) => { playClick(); handleV3GoalComplete(goal); }}
+            onBack={() => go("aiGoalSuggestion")}
+          />
+        );
+
+      case "addMoreProjects":
+        return (
+          <AddMoreProjects
+            existingGoals={savingsGoals}
+            onAddGoal={(key) => {
+              const g = buildPrefillGoal(key, incomeBracket, Math.round(totalMonthlyBudget / (savingsGoals.length + 1)));
+              addSavingsGoal(g);
+            }}
+            onFinish={() => {
+              if (pendingV3Goal) triggerNotif(pendingV3Goal);
+              go("goals");
+            }}
+          />
+        );
+
+      case "reactivationEmail":
+        return (
+          <ReactivationEmail
+            goals={savingsGoals}
+            userName={firstName}
+            onCTA={() => { playClick(); go("reactivationQuiz"); }}
+            onDismiss={() => go("home")}
+          />
+        );
+
+      case "reactivationQuiz":
+        return (
+          <ReactivationQuiz
+            onComplete={(answers) => { playClick(); handleQuizComplete(answers); }}
+            onSkip={() => go("allocationPlan")}
+          />
+        );
+
+      case "allocationPlan":
+        return (
+          <AllocationPlan
+            goals={savingsGoals.length > 0 ? savingsGoals : [buildPrefillGoal(declaredGoal, incomeBracket, 150)]}
+            totalMonthly={totalMonthlyBudget}
+            onConfirm={(updatedGoals, monthly) => {
+              playClick();
+              setSavingsGoals(updatedGoals);
+              setTotalMonthlyBudget(monthly);
+              setSavingsGoalCreated(true);
+              go("goals");
+            }}
+            onBack={() => go("reactivationQuiz")}
+          />
+        );
     }
   };
 
