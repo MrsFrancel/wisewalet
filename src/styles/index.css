@@ -23,3 +23,14 @@
 @keyframes drawLine {
   to { stroke-dashoffset: 0; }
 }
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #0404E2;
+  outline-offset: 2px;
+}
+
+[style*="Brunson"] {
+  letter-spacing: 0.08em !important;
+}

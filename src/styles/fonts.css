@@ -1,1 +1,15 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+@font-face {
+  font-family: "Brunson";
+  src: url("/fonts/Brunson/Brunson.ttf") format("truetype");
+  font-weight: 400 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Brunson Rough";
+  src: url("/fonts/Brunson/Brunson Rough.ttf") format("truetype");
+  font-weight: 400 900;
+  font-style: normal;
+}
