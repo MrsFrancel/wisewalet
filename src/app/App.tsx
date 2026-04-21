@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import {
   ArrowLeft, Bell, ArrowUpRight, ArrowDownLeft, Target, MoreHorizontal,
-  Home, Receipt, BarChart3, User, ChevronRight, Plus,
-  Eye, EyeOff, Pencil, Delete, LogOut, PieChart,
+  Home, Receipt, BarChart3, User, ChevronRight, ChevronDown, Plus,
+  Eye, EyeOff, Pencil, Delete, LogOut, PieChart, Check,
   ShoppingCart, Film, Banknote, Car, Pill, ShoppingBag,
   Plane, Building, Zap, GraduationCap, Star, Trophy, Archive,
 } from "lucide-react";
@@ -675,6 +675,78 @@ function GoalStep1({ go, draft, setDraft }: { go: (s: Screen) => void; draft: Pa
   );
 }
 
+function CustomSelect({
+  value, onChange, options, ariaLabel,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  options: { value: number; label: string }[];
+  ariaLabel: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const selectedLabel = options.find((o) => o.value === value)?.label ?? "";
+  return (
+    <div className="flex-1">
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((s) => !s)}
+        className="w-full h-11 rounded-full px-4 flex items-center justify-between gap-2 transition active:scale-[0.98]"
+        style={{
+          background: C.surface,
+          color: C.text,
+          fontSize: 14,
+          border: `1px solid ${open ? C.primaryDark : C.border}`,
+        }}
+      >
+        <span style={{ fontWeight: 500 }}>{selectedLabel}</span>
+        <ChevronDown
+          size={15} strokeWidth={STROKE} color={C.text2} fill="none"
+          style={{ flexShrink: 0, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}
+        />
+      </button>
+      {open && (
+        <div
+          className="mt-1 rounded-[16px] overflow-hidden"
+          style={{
+            maxHeight: 204,
+            overflowY: "auto",
+            background: C.surface,
+            border: `1px solid ${C.border}`,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.10)",
+          }}
+        >
+          {options.map((o, idx) => {
+            const sel = o.value === value;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                role="option"
+                aria-selected={sel}
+                onClick={() => { onChange(o.value); setOpen(false); }}
+                className="w-full px-4 py-3 text-left flex items-center justify-between transition active:bg-[#F0FFAA]"
+                style={{
+                  color: sel ? C.secondary : C.text,
+                  fontSize: 14,
+                  fontWeight: sel ? 600 : 400,
+                  background: sel ? C.primarySoft : "transparent",
+                  borderBottom: idx < options.length - 1 ? `1px solid ${C.border}` : "none",
+                }}
+              >
+                <span>{o.label}</span>
+                {sel && <Check size={14} color={C.secondary} strokeWidth={2} fill="none" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GoalStep2({ go, draft, setDraft }: { go: (s: Screen) => void; draft: Partial<Goal> & { _amountStr?: string; _month?: number; _year?: number }; setDraft: (d: any) => void }) {
   const now = new Date();
   const amountStr = draft._amountStr ?? "";
@@ -721,14 +793,18 @@ function GoalStep2({ go, draft, setDraft }: { go: (s: Screen) => void; draft: Pa
           </div>
           <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-5">Pour quand ?</div>
           <div className="flex gap-3 mt-3">
-            <select value={month} aria-label="Mois cible" onChange={(e) => setDraft({ ...draft, _month: Number(e.target.value) })}
-              className="flex-1 h-11 rounded-full px-4 outline-none" style={{ background: C.surface, color: C.text, fontSize: 14, border: `1px solid ${C.border}` }}>
-              {MONTHS_FR.map((m, i) => <option key={i} value={i}>{m}</option>)}
-            </select>
-            <select value={year} aria-label="Année cible" onChange={(e) => setDraft({ ...draft, _year: Number(e.target.value) })}
-              className="flex-1 h-11 rounded-full px-4 outline-none" style={{ background: C.surface, color: C.text, fontSize: 14, border: `1px solid ${C.border}` }}>
-              {[0,1,2,3,4].map((o) => <option key={o} value={now.getFullYear() + o}>{now.getFullYear() + o}</option>)}
-            </select>
+            <CustomSelect
+              value={month}
+              ariaLabel="Mois cible"
+              onChange={(v) => setDraft({ ...draft, _month: v })}
+              options={MONTHS_FR.map((m, i) => ({ value: i, label: m }))}
+            />
+            <CustomSelect
+              value={year}
+              ariaLabel="Année cible"
+              onChange={(v) => setDraft({ ...draft, _year: v })}
+              options={[0, 1, 2, 3, 4].map((o) => ({ value: now.getFullYear() + o, label: `${now.getFullYear() + o}` }))}
+            />
           </div>
           <div className="rounded-[20px] p-4 mt-4" style={{ background: C.card, boxShadow: SHADOW }}>
             <div style={{ color: C.text2, fontSize: 12 }}>À épargner par mois</div>
