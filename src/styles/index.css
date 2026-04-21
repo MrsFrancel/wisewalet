@@ -23,3 +23,7 @@
 @keyframes drawLine {
   to { stroke-dashoffset: 0; }
 }
+
+[style*="Brunson"] {
+  letter-spacing: 0.08em !important;
+}
