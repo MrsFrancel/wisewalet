@@ -2,6 +2,34 @@
 @import './tailwind.css';
 @import './theme.css';
 
+/* ── Phone shell (desktop) ── */
+.phone-outer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8E8E8;
+}
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  border-radius: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Mobile : cadre supprimé ── */
+@media (max-width: 639px) {
+  .phone-outer {
+    display: block;
+    background: transparent;
+  }
+  .phone-frame {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }

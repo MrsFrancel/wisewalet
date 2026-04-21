@@ -1515,11 +1515,11 @@ export default function App() {
 
   return (
     <div
-      className="size-full sm:flex sm:items-center sm:justify-center sm:bg-[#E8E8E8]"
+      className="size-full phone-outer"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <div
-        className="relative overflow-hidden w-full h-full sm:w-[390px] sm:h-[844px] sm:rounded-[40px] sm:shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
+        className="relative overflow-hidden phone-frame"
         style={{ background: C.bg }}
       >
         <div className="h-full flex flex-col">{render()}</div>
