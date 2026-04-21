@@ -1515,15 +1515,12 @@ export default function App() {
 
   return (
     <div
-      className="size-full flex items-center justify-center"
-      style={{ background: "#E8E8E8", fontFamily: "Inter, system-ui, sans-serif" }}
+      className="size-full sm:flex sm:items-center sm:justify-center sm:bg-[#E8E8E8]"
+      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <div
-        className="relative overflow-hidden"
-        style={{
-          width: 390, height: 844, background: C.bg,
-          borderRadius: 40, boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
-        }}
+        className="relative overflow-hidden w-full h-full sm:w-[390px] sm:h-[844px] sm:rounded-[40px] sm:shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
+        style={{ background: C.bg }}
       >
         <div className="h-full flex flex-col">{render()}</div>
 
