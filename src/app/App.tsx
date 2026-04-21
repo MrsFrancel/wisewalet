@@ -304,25 +304,100 @@ const CATEGORIES: { icon: LucideIcon; l: string }[] = [
 ];
 
 // ---------- screens ----------
+// ── Coin SVG (design system : lime #C9FF27 / dark #040707) ──
+function CoinSVG({ size = 64, dark = false }: { size?: number; dark?: boolean }) {
+  const bg = dark ? C.dark    : C.primary;
+  const fg = dark ? C.primary : C.dark;
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Corps */}
+      <circle cx="32" cy="32" r="30" fill={bg} />
+      {/* Bord */}
+      <circle cx="32" cy="32" r="30" stroke={fg} strokeWidth="2.5" />
+      {/* Anneau intérieur */}
+      <circle cx="32" cy="32" r="22" stroke={fg} strokeWidth="1.5" opacity="0.5" />
+      {/* Lettre W */}
+      <path d="M16 21L23.5 43L32 28L40.5 43L48 21"
+        stroke={fg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Reflet */}
+      <ellipse cx="22" cy="20" rx="9" ry="4.5" fill="white" opacity="0.2"
+        transform="rotate(-35 22 20)" />
+    </svg>
+  );
+}
+
+// ── Pièces flottantes (arrière-plan WelcomeScreen) ──
+type CoinConfig = {
+  style: React.CSSProperties;
+  size: number;
+  dark: boolean;
+  spin: number;
+  float: number;
+  delay: number;
+  opacity: number;
+  reverse: boolean;
+};
+
+const COIN_CONFIGS: CoinConfig[] = [
+  { style: { top: -28,  left: -28  }, size: 88, dark: false, spin: 18, float: 5.0, delay: 0.0, opacity: 0.22, reverse: false },
+  { style: { top:  50,  right: -28 }, size: 62, dark: true,  spin: 12, float: 4.2, delay: 1.5, opacity: 0.18, reverse: true  },
+  { style: { top: 210,  left:  14  }, size: 42, dark: false, spin: 24, float: 6.0, delay: 0.8, opacity: 0.14, reverse: false },
+  { style: { top: 330,  right:  8  }, size: 50, dark: true,  spin: 16, float: 4.8, delay: 2.2, opacity: 0.16, reverse: false },
+  { style: { bottom: 110, left: -22 }, size: 74, dark: true, spin: 20, float: 5.5, delay: 0.4, opacity: 0.18, reverse: true  },
+  { style: { bottom:  50, right: -18 }, size: 54, dark: false, spin: 14, float: 3.8, delay: 1.0, opacity: 0.20, reverse: false },
+];
+
+function FloatingCoins() {
+  return (
+    <>
+      {COIN_CONFIGS.map((c, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            ...c.style,
+            opacity: c.opacity,
+            pointerEvents: "none",
+            animation: `coinFloat ${c.float}s ease-in-out ${c.delay}s infinite`,
+          }}
+        >
+          <div style={{
+            animation: `coinSpin ${c.spin}s linear ${c.delay}s infinite${c.reverse ? " reverse" : ""}`,
+          }}>
+            <CoinSVG size={c.size} dark={c.dark} />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 function WelcomeScreen({ go }: { go: (s: Screen) => void }) {
   return (
     <div className="flex flex-col h-full relative screen-enter" style={{ background: C.bg, color: C.text }}>
-      <StatusBar />
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: C.primary }}>
-          <div className="w-8 h-6 rounded-md border-2" style={{ borderColor: C.onPrimary }} />
-        </div>
-        <div style={{ color: C.text, fontSize: 32, fontWeight: 800, letterSpacing: -0.5, fontFamily: "Brunson, sans-serif" }}>WiseWallet</div>
-        <div className="mt-12 text-center" style={{ color: C.text, fontSize: 36, fontWeight: 800, fontFamily: "Brunson, sans-serif", lineHeight: 1.1 }}>
-          Gérez. Épargnez. <span style={{ color: C.secondary }}>Atteignez.</span>
-        </div>
-        <div className="mt-4 text-center" style={{ color: C.text2, fontSize: 15 }}>
-          Votre argent, enfin organisé.
-        </div>
+      {/* Arrière-plan animé */}
+      <div className="absolute inset-0 overflow-hidden" style={{ pointerEvents: "none", zIndex: 0 }}>
+        <FloatingCoins />
       </div>
-      <div className="px-6 pb-12 space-y-3">
-        <PrimaryButton onClick={() => go("signup")}>Commencer</PrimaryButton>
-        <GhostButton onClick={() => go("home")}>J'ai déjà un compte</GhostButton>
+      {/* Contenu (au-dessus des pièces) */}
+      <div className="relative flex flex-col h-full" style={{ zIndex: 1 }}>
+        <StatusBar />
+        <div className="flex-1 flex flex-col items-center justify-center px-6">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: C.primary }}>
+            <div className="w-8 h-6 rounded-md border-2" style={{ borderColor: C.onPrimary }} />
+          </div>
+          <div style={{ color: C.text, fontSize: 32, fontWeight: 800, letterSpacing: -0.5, fontFamily: "Brunson, sans-serif" }}>WiseWallet</div>
+          <div className="mt-12 text-center" style={{ color: C.text, fontSize: 36, fontWeight: 800, fontFamily: "Brunson, sans-serif", lineHeight: 1.1 }}>
+            Gérez. Épargnez. <span style={{ color: C.secondary }}>Atteignez.</span>
+          </div>
+          <div className="mt-4 text-center" style={{ color: C.text2, fontSize: 15 }}>
+            Votre argent, enfin organisé.
+          </div>
+        </div>
+        <div className="px-6 pb-12 space-y-3">
+          <PrimaryButton onClick={() => go("signup")}>Commencer</PrimaryButton>
+          <GhostButton onClick={() => go("home")}>J'ai déjà un compte</GhostButton>
+        </div>
       </div>
     </div>
   );
