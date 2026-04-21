@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import {
   ArrowLeft, Bell, ArrowUpRight, ArrowDownLeft, Target, MoreHorizontal,
   Home, Receipt, BarChart3, User, ChevronRight, ChevronDown, Plus,
-  Eye, EyeOff, Pencil, Delete, LogOut, PieChart, Check,
+  Eye, EyeOff, Pencil, Delete, LogOut, PieChart, Check, Sparkles,
   ShoppingCart, Film, Banknote, Car, Pill, ShoppingBag,
   Plane, Building, Zap, GraduationCap, Star, Trophy, Archive,
 } from "lucide-react";
@@ -38,6 +38,68 @@ const C = {
 
 const SHADOW = "inset 0 0 0 1px #E8E8E8";
 const SHADOW_LG = "none";
+
+// ── V2 design tokens (cluster_2 / Épargnants Passifs feature) ──
+const V2C = {
+  primary:      "#6C63FF",
+  primaryLight: "#F0EEFF",
+  bg:           "#F8F9FF",
+  text:         "#1A1A2E",
+  text2:        "#6B6B8A",
+  border:       "#E8E8F0",
+};
+
+// ── Goal suggestion type ──
+type GoalSuggestion = {
+  emoji: string;
+  name: string;
+  amount: number;
+  icon: LucideIcon;
+};
+
+const GOAL_TEMPLATES: Record<string, GoalSuggestion[]> = {
+  "Alimentation": [
+    { emoji: "🏖️", name: "Fonds d'urgence alimentaire", amount: 500,   icon: Archive },
+    { emoji: "🎉", name: "Budget sorties resto",         amount: 200,   icon: Star },
+  ],
+  "Transport": [
+    { emoji: "🚗", name: "Achat voiture", amount: 5000,  icon: Car },
+    { emoji: "✈️", name: "Voyage",        amount: 1500,  icon: Plane },
+  ],
+  "Loisirs": [
+    { emoji: "🎬", name: "Budget loisirs mensuel", amount: 150,  icon: Film },
+    { emoji: "🏖️", name: "Voyage",                 amount: 2000, icon: Plane },
+  ],
+  "Santé": [
+    { emoji: "💊", name: "Fonds santé", amount: 1000, icon: Pill },
+    { emoji: "🧘", name: "Bien-être",   amount: 500,  icon: Star },
+  ],
+  "Shopping": [
+    { emoji: "👗", name: "Budget shopping", amount: 300, icon: ShoppingBag },
+    { emoji: "🏠", name: "Déco maison",     amount: 800, icon: Building },
+  ],
+  "Logement": [
+    { emoji: "🏠", name: "Apport immobilier", amount: 20000, icon: Building },
+    { emoji: "🛋️", name: "Travaux",           amount: 5000,  icon: Building },
+  ],
+};
+
+const DEFAULT_GOALS: GoalSuggestion[] = [
+  { emoji: "🎯", name: "Mon objectif", amount: 1000, icon: Target },
+  { emoji: "🏖️", name: "Voyage",       amount: 1500, icon: Plane },
+];
+
+function getAgeSuggestion(age: number): GoalSuggestion {
+  if (age < 25) return { emoji: "🎓", name: "Formation",          amount: 2000,  icon: GraduationCap };
+  if (age < 35) return { emoji: "🏠", name: "Apport immobilier",  amount: 20000, icon: Building };
+  if (age < 45) return { emoji: "📈", name: "Épargne retraite",   amount: 10000, icon: Trophy };
+  return          { emoji: "👨‍👩‍👧", name: "Études enfants",     amount: 15000, icon: GraduationCap };
+}
+
+function getSuggestions(category: string, age: number): GoalSuggestion[] {
+  const base = GOAL_TEMPLATES[category] ?? DEFAULT_GOALS;
+  return [...base, getAgeSuggestion(age)].slice(0, 3);
+}
 
 const ICON = 22;
 const STROKE = 1.5;
@@ -507,7 +569,123 @@ function TransactionsScreen({ go }: { go: (s: Screen) => void }) {
   );
 }
 
-function TxDetailScreen({ go }: { go: (s: Screen) => void }) {
+// ── V2 · Bottom sheet suggestion ──────────────────────────────────────────
+function SavingsGoalSuggestion({
+  category, userAge, onAccept, onDismiss,
+}: {
+  category: string;
+  userAge: number;
+  onAccept: (s: GoalSuggestion) => void;
+  onDismiss: () => void;
+}) {
+  const [entered, setEntered] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const suggestions = getSuggestions(category, userAge);
+
+  useEffect(() => {
+    const t = setTimeout(() => setEntered(true), 30);
+    return () => clearTimeout(t);
+  }, []);
+
+  const dismiss = () => { setEntered(false); setTimeout(onDismiss, 260); };
+  const accept  = () => { setEntered(false); setTimeout(() => onAccept(suggestions[selectedIdx]), 260); };
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={dismiss}
+        style={{
+          position: "absolute", inset: 0,
+          background: "rgba(0,0,0,0.4)",
+          opacity: entered ? 1 : 0,
+          transition: "opacity 300ms",
+          zIndex: 200,
+        }}
+      />
+
+      {/* Sheet */}
+      <div
+        style={{
+          position: "absolute", left: 0, right: 0, bottom: 0,
+          background: "#FFFFFF",
+          borderRadius: "24px 24px 0 0",
+          transform: entered ? "translateY(0)" : "translateY(100%)",
+          transition: entered ? "transform 300ms ease-out" : "transform 250ms ease-in",
+          zIndex: 201,
+          paddingBottom: 34,
+        }}
+      >
+        {/* Drag handle */}
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 12 }}>
+          <div style={{ width: 40, height: 4, borderRadius: 2, background: V2C.border }} />
+        </div>
+
+        {/* Sparkle */}
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 18 }}>
+          <Sparkles size={32} color={V2C.primary} strokeWidth={1.5} />
+        </div>
+
+        {/* Title */}
+        <div style={{ textAlign: "center", color: V2C.text, fontSize: 20, fontWeight: 700, margin: "12px 24px 0", fontFamily: "Brunson, sans-serif" }}>
+          Et si vous épargniez pour ça ?
+        </div>
+
+        {/* Subtitle */}
+        <div style={{ textAlign: "center", color: V2C.text2, fontSize: 13, margin: "8px 24px 20px", lineHeight: 1.5 }}>
+          Vous dépensez régulièrement en <span style={{ color: V2C.text, fontWeight: 600 }}>{category}</span>. Les utilisateurs comme vous épargnent souvent pour :
+        </div>
+
+        {/* Suggestion cards — horizontal scroll */}
+        <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingLeft: 24, paddingRight: 24, paddingBottom: 6 }}>
+          {suggestions.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => setSelectedIdx(i)}
+              className="transition active:scale-[0.97]"
+              style={{
+                minWidth: 140, flexShrink: 0,
+                background: selectedIdx === i ? V2C.primaryLight : "#FFFFFF",
+                border: `${selectedIdx === i ? 2 : 1}px solid ${selectedIdx === i ? V2C.primary : V2C.border}`,
+                borderRadius: 16,
+                padding: "16px 14px",
+                textAlign: "left",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+              }}
+            >
+              <div style={{ fontSize: 28 }}>{s.emoji}</div>
+              <div style={{ color: V2C.text, fontSize: 13, fontWeight: 600, marginTop: 8, lineHeight: 1.3 }}>{s.name}</div>
+              <div style={{ color: V2C.primary, fontSize: 12, fontWeight: 600, marginTop: 4 }}>
+                {s.amount.toLocaleString("fr-FR")} €
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* CTAs */}
+        <div style={{ padding: "20px 24px 0", display: "flex", flexDirection: "column", gap: 10 }}>
+          <button
+            onClick={accept}
+            className="transition active:scale-[0.98]"
+            style={{ width: "100%", height: 52, borderRadius: 14, background: V2C.primary, color: "#FFFFFF", fontSize: 15, fontWeight: 600 }}
+          >
+            Créer cet objectif
+          </button>
+          <button
+            onClick={dismiss}
+            className="transition active:scale-[0.98]"
+            style={{ width: "100%", height: 52, borderRadius: 14, background: "transparent", color: V2C.text, fontSize: 15, fontWeight: 600, border: `2px solid ${V2C.border}` }}
+          >
+            Pas maintenant
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Transaction detail ─────────────────────────────────────────────────────
+function TxDetailScreen({ go, onConfirm }: { go: (s: Screen) => void; onConfirm: (category: string) => void }) {
   const [selected, setSelected] = useState("Alimentation");
   const alts: { icon: LucideIcon; l: string }[] = [
     { icon: Car, l: "Transport" }, { icon: Film, l: "Loisirs" }, { icon: Pill, l: "Santé" },
@@ -555,7 +733,7 @@ function TxDetailScreen({ go }: { go: (s: Screen) => void }) {
         </div>
       </ScreenBody>
       <div className="px-6 pb-6">
-        <PrimaryButton onClick={() => go("home")}>Confirmer</PrimaryButton>
+        <PrimaryButton onClick={() => onConfirm(selected)}>Confirmer</PrimaryButton>
       </div>
     </div>
   );
@@ -634,8 +812,14 @@ function ProgressHeader({ onBack, step }: { onBack: () => void; step: 1 | 2 | 3 
   );
 }
 
-function GoalStep1({ go, draft, setDraft }: { go: (s: Screen) => void; draft: Partial<Goal>; setDraft: (d: Partial<Goal>) => void }) {
+function GoalStep1({ go, draft, setDraft, prefill }: {
+  go: (s: Screen) => void;
+  draft: Partial<Goal>;
+  setDraft: (d: Partial<Goal>) => void;
+  prefill: GoalSuggestion | null;
+}) {
   const ready = !!draft.name && !!draft.category;
+  const isPrefilled = !!prefill && draft.name === prefill.name;
   return (
     <div className="flex flex-col h-full" style={{ background: C.bg }}>
       <StatusBar />
@@ -643,10 +827,19 @@ function GoalStep1({ go, draft, setDraft }: { go: (s: Screen) => void; draft: Pa
       <ScreenBody pad={false}>
         <div className="px-6">
           <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Quel est votre objectif ?</div>
-          <label htmlFor="goal-name" style={{ color: C.text2, fontSize: 13, fontWeight: 500 }} className="mt-4 mb-2 block">Nom de l'objectif</label>
+          <label htmlFor="goal-name" style={{ color: C.text2, fontSize: 13, fontWeight: 500 }} className="mt-4 mb-1 block">Nom de l'objectif</label>
+          {isPrefilled && (
+            <div style={{ color: V2C.primary, fontSize: 11, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>
+              <Sparkles size={11} color={V2C.primary} strokeWidth={2} />
+              Pré-rempli pour vous
+            </div>
+          )}
           <input id="goal-name" value={draft.name || ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             placeholder="Ex: Voyage au Japon" className="w-full h-12 rounded-[12px] px-4 outline-none"
-            style={{ background: C.surface, color: C.text, border: `1px solid ${C.border}`, fontSize: 15 }} />
+            style={{
+              background: C.surface, color: C.text, fontSize: 15,
+              border: `1px solid ${isPrefilled ? V2C.primary : C.border}`,
+            }} />
           <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-6">Choisissez une catégorie</div>
           <div className="grid grid-cols-3 gap-2 mt-3">
             {CATEGORIES.map((c) => {
@@ -876,8 +1069,16 @@ function GoalStep3({ go, draft, onCreate }: { go: (s: Screen) => void; draft: Pa
   );
 }
 
-function GoalCreatedScreen({ go, goal }: { go: (s: Screen) => void; goal?: Goal }) {
+function GoalCreatedScreen({ go, goal, isFromSuggestion, onCreated }: {
+  go: (s: Screen) => void;
+  goal?: Goal;
+  isFromSuggestion: boolean;
+  onCreated: () => void;
+}) {
   const monthly = goal ? goal.amount / goal.durationMonths : 0;
+
+  useEffect(() => { onCreated(); }, []);
+
   return (
     <div className="flex flex-col h-full screen-fade" style={{ background: C.bg }}>
       <StatusBar />
@@ -889,7 +1090,14 @@ function GoalCreatedScreen({ go, goal }: { go: (s: Screen) => void; goal?: Goal 
         <div style={{ color: C.text2, fontSize: 15 }} className="mt-3 max-w-[300px]">
           Votre objectif {goal?.name} est lancé. Épargnez {monthly.toLocaleString("fr-FR", { maximumFractionDigits: 0 })}€/mois pour y arriver.
         </div>
-        <div className="w-full mt-8">
+        {isFromSuggestion && (
+          <div className="mt-4 px-4 py-3 rounded-[14px]" style={{ background: V2C.primaryLight }}>
+            <div style={{ color: V2C.text, fontSize: 14, fontWeight: 500, lineHeight: 1.5 }}>
+              🎉 Bravo ! Vous faites partie des utilisateurs qui épargnent 3x plus.
+            </div>
+          </div>
+        )}
+        <div className="w-full mt-6">
           <div className="h-2 rounded-full" style={{ background: C.border }}>
             <div className="h-full rounded-full" style={{ width: "0%", background: C.primary }} />
           </div>
@@ -1217,9 +1425,49 @@ export default function App() {
   const [draft, setDraft] = useState<Partial<Goal> & { _amountStr?: string; _month?: number; _year?: number }>({});
   const [activeGoalId, setActiveGoalId] = useState<string | null>(null);
 
+  // ── V2 state ──────────────────────────────────────────────────────────────
+  const userAge = 28; // cluster_2 demo user age
+  const [savingsGoalCreated, setSavingsGoalCreated] = useState(false);
+  const [dismissedCount, setDismissedCount] = useState(0);
+  const [showSuggestion, setShowSuggestion] = useState(false);
+  const [suggestionCategory, setSuggestionCategory] = useState("Alimentation");
+  const [prefill, setPrefill] = useState<GoalSuggestion | null>(null);
+
   const go = (s: Screen) => {
-    if (s === "goalStep1") setDraft({});
+    if (s === "goalStep1" && !prefill) setDraft({});
     setScreen(s);
+  };
+
+  // Triggered when user taps "Confirmer" on TxDetailScreen
+  const handleTxConfirm = (category: string) => {
+    if (!savingsGoalCreated && dismissedCount < 3) {
+      setSuggestionCategory(category);
+      setTimeout(() => setShowSuggestion(true), 800);
+    } else {
+      setScreen("home");
+    }
+  };
+
+  // User accepts a suggestion → prefill goal creation
+  const handleSuggestionAccept = (s: GoalSuggestion) => {
+    setShowSuggestion(false);
+    setPrefill(s);
+    const matchedCat = CATEGORIES.find((c) => c.icon === s.icon);
+    setDraft({
+      name: s.name,
+      amount: s.amount,
+      _amountStr: s.amount.toString(),
+      icon: s.icon,
+      category: matchedCat?.l || "Autre",
+    });
+    setScreen("goalStep1");
+  };
+
+  // User dismisses the suggestion
+  const handleSuggestionDismiss = () => {
+    setShowSuggestion(false);
+    setDismissedCount((n) => n + 1);
+    setScreen("home");
   };
 
   const onCreate = () => {
@@ -1246,12 +1494,18 @@ export default function App() {
       case "signup": return <SignupScreen go={go} firstName={firstName} setFirstName={setFirstName} />;
       case "home": return <HomeScreen go={go} firstName={firstName} goals={goals} />;
       case "transactions": return <TransactionsScreen go={go} />;
-      case "txDetail": return <TxDetailScreen go={go} />;
+      case "txDetail": return <TxDetailScreen go={go} onConfirm={handleTxConfirm} />;
       case "goals": return <GoalsScreen go={go} goals={goals} />;
-      case "goalStep1": return <GoalStep1 go={go} draft={draft} setDraft={setDraft} />;
+      case "goalStep1": return <GoalStep1 go={go} draft={draft} setDraft={setDraft} prefill={prefill} />;
       case "goalStep2": return <GoalStep2 go={go} draft={draft} setDraft={setDraft} />;
       case "goalStep3": return <GoalStep3 go={go} draft={draft} onCreate={onCreate} />;
-      case "goalCreated": return <GoalCreatedScreen go={go} goal={activeGoal} />;
+      case "goalCreated": return (
+        <GoalCreatedScreen
+          go={go} goal={activeGoal}
+          isFromSuggestion={prefill !== null}
+          onCreated={() => { setSavingsGoalCreated(true); setPrefill(null); }}
+        />
+      );
       case "goalDetail": return <GoalDetailScreen go={go} goal={activeGoal} />;
       case "analysis": return <AnalysisScreen go={go} />;
       case "notifications": return <NotificationsScreen go={go} firstName={firstName} />;
@@ -1272,6 +1526,16 @@ export default function App() {
         }}
       >
         <div className="h-full flex flex-col">{render()}</div>
+
+        {/* V2 · Savings goal suggestion overlay */}
+        {showSuggestion && (
+          <SavingsGoalSuggestion
+            category={suggestionCategory}
+            userAge={userAge}
+            onAccept={handleSuggestionAccept}
+            onDismiss={handleSuggestionDismiss}
+          />
+        )}
       </div>
     </div>
   );
