@@ -1,4 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+// ── Debug layout (dev only) ────────────────────────────────────────────────
+import { DebugLayout } from "../layouts/DebugLayout";
+import type { DebugState, DebugActions } from "../layouts/DebugLayout";
 // ── V3 screens & components ───────────────────────────────────────────────
 import { AIGoalSuggestionModal } from "../screens/AIGoalSuggestionModal";
 import { AIGoalEnrichment } from "../screens/AIGoalEnrichment";
@@ -1719,7 +1722,7 @@ export default function App() {
   const [activeGoalId, setActiveGoalId] = useState<string | null>(null);
 
   // ── V2 state ──────────────────────────────────────────────────────────────
-  const userAge = 28; // cluster_2 demo user age
+  const [userAge, setUserAge] = useState(28);
   const [savingsGoalCreated, setSavingsGoalCreated] = useState(false);
   const [dismissedCount, setDismissedCount] = useState(0);
   const [showSuggestion, setShowSuggestion] = useState(false);
@@ -1727,16 +1730,19 @@ export default function App() {
   const [prefill, setPrefill] = useState<GoalSuggestion | null>(null);
 
   // ── V3 state ──────────────────────────────────────────────────────────────
-  // Demo: change cluster to "cluster_3" to test reactivation flow
-  const [cluster] = useState<Cluster>("cluster_2");
+  const [cluster, setCluster] = useState<Cluster>("cluster_2");
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
   const [totalMonthlyBudget, setTotalMonthlyBudget] = useState(200);
   const [declaredGoal, setDeclaredGoal] = useState("voyage");
-  const [incomeBracket] = useState<IncomeBracket>("medium");
+  const [incomeBracket, setIncomeBracket] = useState<IncomeBracket>("medium");
   const [activeV3GoalId, setActiveV3GoalId] = useState<string | null>(null);
   const [pendingV3Goal, setPendingV3Goal] = useState<SavingsGoal | null>(null);
   const [showNotif, setShowNotif] = useState(false);
   const [notifGoal, setNotifGoal] = useState<SavingsGoal | null>(null);
+  // Extra state exposed to debug panel
+  const [firstTransactionCategorized, setFirstTransactionCategorized] = useState(false);
+  const [firstTransactionDate, setFirstTransactionDate] = useState<string | null>(null);
+  const [lastActiveDate, setLastActiveDate] = useState<string | null>(null);
 
   // V3 userState object for child components
   const userState: UserState = {
@@ -1748,9 +1754,9 @@ export default function App() {
     declaredGoal,
     incomeBracket,
     age: userAge,
-    firstTransactionCategorized: savingsGoalCreated,
-    firstTransactionDate: null,
-    lastActiveDate: null,
+    firstTransactionCategorized,
+    firstTransactionDate,
+    lastActiveDate,
     dismissedSuggestionCount: dismissedCount,
     reactivationEmailSent: false,
   };
@@ -2044,7 +2050,104 @@ export default function App() {
     }
   };
 
-  return (
+  // ── Debug panel state + actions ─────────────────────────────────────────
+  const daysAgo = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toISOString().split("T")[0];
+  };
+
+  const debugState: DebugState = {
+    cluster,
+    declaredGoal,
+    incomeBracket,
+    userAge,
+    savingsGoalCreated,
+    firstTransactionCategorized,
+    dismissedSuggestionCount: dismissedCount,
+    firstTransactionDate,
+    lastActiveDate,
+    savingsGoals,
+    totalMonthlyBudget,
+  };
+
+  const debugActions: DebugActions = {
+    setCluster,
+    setDeclaredGoal,
+    setIncomeBracket,
+    setUserAge,
+    setSavingsGoalCreated,
+    setFirstTransactionCategorized,
+    setDismissedCount,
+    setFirstTransactionDate,
+    setLastActiveDate,
+    setSavingsGoals,
+
+    triggerProgressNotif: (_type) => {
+      const goal = savingsGoals[0];
+      if (!goal) return;
+      triggerNotif(goal);
+    },
+
+    setGoalProgress: (percent) => {
+      if (savingsGoals.length === 0) return;
+      const updated = savingsGoals.map((g, i) =>
+        i === 0 ? { ...g, currentAmount: Math.round(g.targetAmount * percent / 100) } : g
+      );
+      setSavingsGoals(updated);
+      triggerNotif(updated[0]);
+    },
+
+    simulateCluster2J2: () => {
+      setCluster("cluster_2");
+      setFirstTransactionCategorized(true);
+      setSavingsGoalCreated(false);
+      setFirstTransactionDate(daysAgo(2));
+      setDismissedCount(0);
+    },
+
+    simulateCluster3J14: () => {
+      setCluster("cluster_3");
+      setSavingsGoalCreated(false);
+      setLastActiveDate(daysAgo(14));
+    },
+
+    resetFeature: () => {
+      setSavingsGoalCreated(false);
+      setSavingsGoals([]);
+      setDismissedCount(0);
+      setFirstTransactionCategorized(false);
+      setFirstTransactionDate(null);
+      setLastActiveDate(null);
+      setShowNotif(false);
+      setNotifGoal(null);
+    },
+
+    resetAll: () => {
+      setScreen("welcome");
+      setSavingsGoalCreated(false);
+      setSavingsGoals([]);
+      setGoals([]);
+      setDismissedCount(0);
+      setFirstTransactionCategorized(false);
+      setFirstTransactionDate(null);
+      setLastActiveDate(null);
+      setCluster("cluster_2");
+      setDeclaredGoal("voyage");
+      setIncomeBracket("medium");
+      setUserAge(28);
+      setTotalMonthlyBudget(200);
+      setShowNotif(false);
+      setNotifGoal(null);
+      setPrefill(null);
+      setDraft({});
+      setActiveGoalId(null);
+      setActiveV3GoalId(null);
+    },
+  };
+
+  // ── App frame ──────────────────────────────────────────────────────────
+  const appFrame = (
     <div
       className="size-full phone-outer"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
@@ -2066,5 +2169,11 @@ export default function App() {
         )}
       </div>
     </div>
+  );
+
+  return (
+    <DebugLayout debugState={debugState} debugActions={debugActions}>
+      {appFrame}
+    </DebugLayout>
   );
 }
