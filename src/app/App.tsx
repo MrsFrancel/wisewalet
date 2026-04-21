@@ -310,23 +310,25 @@ function CoinSVG({ size = 64, dark = false }: { size?: number; dark?: boolean })
   const fg = dark ? C.primary : C.dark;
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Corps */}
       <circle cx="32" cy="32" r="30" fill={bg} />
-      {/* Bord */}
       <circle cx="32" cy="32" r="30" stroke={fg} strokeWidth="2.5" />
-      {/* Anneau intérieur */}
       <circle cx="32" cy="32" r="22" stroke={fg} strokeWidth="1.5" opacity="0.5" />
-      {/* Lettre W */}
       <path d="M16 21L23.5 43L32 28L40.5 43L48 21"
         stroke={fg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      {/* Reflet */}
       <ellipse cx="22" cy="20" rx="9" ry="4.5" fill="white" opacity="0.2"
         transform="rotate(-35 22 20)" />
     </svg>
   );
 }
 
-// ── Pièces flottantes (arrière-plan WelcomeScreen) ──
+// ── Pièces flottantes ──────────────────────────────────────────────────────
+// Phase "entering" : les pièces partent de leur position off-screen et
+//   glissent vers leur position normale (animation inverse à l'entrée).
+// Phase "idle"     : flottement + rotation libre.
+// Phase "exiting"  : glissent lentement vers l'extérieur de l'écran.
+// ──────────────────────────────────────────────────────────────────────────
+type CoinPhase = "entering" | "idle" | "exiting";
+
 type CoinConfig = {
   style: React.CSSProperties;
   size: number;
@@ -336,50 +338,95 @@ type CoinConfig = {
   delay: number;
   opacity: number;
   reverse: boolean;
+  exitX: number;  // px vers l'extérieur
+  exitY: number;
 };
 
 const COIN_CONFIGS: CoinConfig[] = [
-  { style: { top: -28,  left: -28  }, size: 88, dark: false, spin: 18, float: 5.0, delay: 0.0, opacity: 0.22, reverse: false },
-  { style: { top:  50,  right: -28 }, size: 62, dark: true,  spin: 12, float: 4.2, delay: 1.5, opacity: 0.18, reverse: true  },
-  { style: { top: 210,  left:  14  }, size: 42, dark: false, spin: 24, float: 6.0, delay: 0.8, opacity: 0.14, reverse: false },
-  { style: { top: 330,  right:  8  }, size: 50, dark: true,  spin: 16, float: 4.8, delay: 2.2, opacity: 0.16, reverse: false },
-  { style: { bottom: 110, left: -22 }, size: 74, dark: true, spin: 20, float: 5.5, delay: 0.4, opacity: 0.18, reverse: true  },
-  { style: { bottom:  50, right: -18 }, size: 54, dark: false, spin: 14, float: 3.8, delay: 1.0, opacity: 0.20, reverse: false },
+  { style: { top: -40,    left: -40   }, size: 160, dark: false, spin: 18, float: 5.0, delay: 0.0, opacity: 0.22, reverse: false, exitX: -300, exitY: -300 },
+  { style: { top:  40,    right: -40  }, size: 115, dark: true,  spin: 12, float: 4.2, delay: 1.5, opacity: 0.18, reverse: true,  exitX:  300, exitY: -220 },
+  { style: { top: 200,    left:   8   }, size:  88, dark: false, spin: 24, float: 6.0, delay: 0.8, opacity: 0.15, reverse: false, exitX: -300, exitY:   30 },
+  { style: { top: 360,    right:   0  }, size: 100, dark: true,  spin: 16, float: 4.8, delay: 2.2, opacity: 0.17, reverse: false, exitX:  300, exitY:   90 },
+  { style: { bottom:  90, left:  -35  }, size: 145, dark: true,  spin: 20, float: 5.5, delay: 0.4, opacity: 0.18, reverse: true,  exitX: -300, exitY:  260 },
+  { style: { bottom:  30, right: -25  }, size: 108, dark: false, spin: 14, float: 3.8, delay: 1.0, opacity: 0.20, reverse: false, exitX:  300, exitY:  280 },
 ];
 
-function FloatingCoins() {
+function FloatingCoins({ phase }: { phase: CoinPhase }) {
+  const isIdle    = phase === "idle";
+  const isOff     = phase !== "idle"; // entering ou exiting : hors position normale
+
   return (
     <>
-      {COIN_CONFIGS.map((c, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            ...c.style,
-            opacity: c.opacity,
-            pointerEvents: "none",
-            animation: `coinFloat ${c.float}s ease-in-out ${c.delay}s infinite`,
-          }}
-        >
-          <div style={{
-            animation: `coinSpin ${c.spin}s linear ${c.delay}s infinite${c.reverse ? " reverse" : ""}`,
-          }}>
-            <CoinSVG size={c.size} dark={c.dark} />
+      {COIN_CONFIGS.map((c, i) => {
+        // Délai de stagger selon la phase
+        const stagger = isOff
+          ? `${i * 45}ms`   // exit : premier part le premier
+          : `${i * 55}ms`;  // enter : chaque pièce arrive légèrement après
+
+        // Easing selon la phase
+        const easing = phase === "exiting"
+          ? `transform 0.75s ease-in ${stagger}`          // accélère vers l'extérieur
+          : `transform 1.0s cubic-bezier(0.16,1,0.3,1) ${stagger}`; // glisse depuis l'extérieur
+
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              ...c.style,
+              opacity: c.opacity,
+              pointerEvents: "none",
+              // Off-screen quand entering ou exiting, en place quand idle
+              transform: isIdle
+                ? "translate(0px, 0px)"
+                : `translate(${c.exitX}px, ${c.exitY}px)`,
+              // Pas de transition pendant le rendu initial (entering) :
+              // la pièce apparaît directement hors écran sans animation parasite.
+              // La transition se déclenche au passage idle ↔ exiting.
+              transition: phase === "entering" ? "none" : easing,
+              // Float uniquement en idle (sinon conflit avec le translate)
+              animation: isIdle
+                ? `coinFloat ${c.float}s ease-in-out ${c.delay}s infinite`
+                : "none",
+            }}
+          >
+            <div style={{
+              animation: isIdle
+                ? `coinSpin ${c.spin}s linear ${c.delay}s infinite${c.reverse ? " reverse" : ""}`
+                : "none",
+            }}>
+              <CoinSVG size={c.size} dark={c.dark} />
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </>
   );
 }
 
 function WelcomeScreen({ go }: { go: (s: Screen) => void }) {
+  // Démarre en "entering" : les pièces sont hors écran.
+  // Après 40 ms (un frame de peinture), on passe en "idle" → elles glissent vers l'intérieur.
+  const [phase, setPhase] = useState<CoinPhase>("entering");
+
+  useEffect(() => {
+    const t = setTimeout(() => setPhase("idle"), 40);
+    return () => clearTimeout(t);
+  }, []);
+
+  const handleNav = (target: Screen) => {
+    setPhase("exiting");
+    // Délai = durée transition (750 ms) + stagger max (5 pièces × 45 ms = 225 ms) + marge
+    setTimeout(() => go(target), 1000);
+  };
+
   return (
     <div className="flex flex-col h-full relative screen-enter" style={{ background: C.bg, color: C.text }}>
-      {/* Arrière-plan animé */}
+      {/* Arrière-plan : pièces animées */}
       <div className="absolute inset-0 overflow-hidden" style={{ pointerEvents: "none", zIndex: 0 }}>
-        <FloatingCoins />
+        <FloatingCoins phase={phase} />
       </div>
-      {/* Contenu (au-dessus des pièces) */}
+      {/* Contenu au-dessus des pièces */}
       <div className="relative flex flex-col h-full" style={{ zIndex: 1 }}>
         <StatusBar />
         <div className="flex-1 flex flex-col items-center justify-center px-6">
@@ -395,8 +442,8 @@ function WelcomeScreen({ go }: { go: (s: Screen) => void }) {
           </div>
         </div>
         <div className="px-6 pb-12 space-y-3">
-          <PrimaryButton onClick={() => go("signup")}>Commencer</PrimaryButton>
-          <GhostButton onClick={() => go("home")}>J'ai déjà un compte</GhostButton>
+          <PrimaryButton onClick={() => handleNav("signup")}>Commencer</PrimaryButton>
+          <GhostButton onClick={() => handleNav("home")}>J'ai déjà un compte</GhostButton>
         </div>
       </div>
     </div>
