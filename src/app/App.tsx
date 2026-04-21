@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
 import {
   ArrowLeft, Bell, ArrowUpRight, ArrowDownLeft, Target, MoreHorizontal,
   Home, Receipt, BarChart3, User, ChevronRight, ChevronDown, Plus,
@@ -149,7 +150,50 @@ function useCountUp(target: number, duration = 1200, active = true) {
   return value;
 }
 
-// ---------- primitives ----------
+// ── Audio ─────────────────────────────────────────────────────────────────
+let _ac: AudioContext | null = null;
+function ac(): AudioContext {
+  if (!_ac) _ac = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+  if (_ac.state === "suspended") _ac.resume();
+  return _ac;
+}
+
+/** Son de clic court et discret (fintech moderne) */
+function playClick() {
+  try {
+    const c = ac();
+    const osc = c.createOscillator();
+    const g = c.createGain();
+    osc.connect(g); g.connect(c.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(820, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(460, c.currentTime + 0.07);
+    g.gain.setValueAtTime(0.28, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.07);
+    osc.start(c.currentTime); osc.stop(c.currentTime + 0.08);
+  } catch (_) { /* navigateur sans AudioContext */ }
+}
+
+/** Son de pièces : arpège ascendant Do majeur (célébration objectif) */
+function playCoins() {
+  try {
+    const c = ac();
+    [523, 659, 784, 1047, 1319].forEach((freq, i) => {
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.connect(g); g.connect(c.destination);
+      osc.type = "triangle";
+      const t = c.currentTime + i * 0.12;
+      osc.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.35, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+      osc.start(t); osc.stop(t + 0.65);
+    });
+  } catch (_) { /* silencieux si non supporté */ }
+}
+
+// ── Primitives ────────────────────────────────────────────────────────────
 function StatusBar() {
   return (
     <div className="flex items-center justify-between px-6 pt-3 pb-1" style={{ color: C.text, fontSize: 13, fontWeight: 600 }}>
@@ -164,7 +208,7 @@ function StatusBar() {
 function PrimaryButton({ children, onClick, disabled }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean }) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => { if (!disabled) { playClick(); onClick?.(); } }}
       disabled={disabled}
       className="w-full h-[52px] rounded-full transition-all active:scale-[0.98]"
       style={{
@@ -182,7 +226,7 @@ function PrimaryButton({ children, onClick, disabled }: { children: React.ReactN
 function GhostButton({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => { playClick(); onClick?.(); }}
       className="w-full h-[52px] rounded-full transition-all active:scale-[0.98]"
       style={{ background: "transparent", color: C.text, fontWeight: 600, fontSize: 15, border: `2px solid ${C.text}` }}
     >
@@ -193,7 +237,7 @@ function GhostButton({ children, onClick }: { children: React.ReactNode; onClick
 
 function IconBtn({ children, onClick, ariaLabel }: { children: React.ReactNode; onClick?: () => void; ariaLabel?: string }) {
   return (
-    <button onClick={onClick} aria-label={ariaLabel} className="w-11 h-11 rounded-full flex items-center justify-center transition active:scale-95" style={{ background: C.surface, boxShadow: SHADOW }}>
+    <button onClick={() => { playClick(); onClick?.(); }} aria-label={ariaLabel} className="w-11 h-11 rounded-full flex items-center justify-center transition active:scale-95" style={{ background: C.surface, boxShadow: SHADOW }}>
       {children}
     </button>
   );
@@ -237,7 +281,7 @@ function BottomNav({ active, go }: { active: Screen; go: (s: Screen) => void }) 
             (t.key === "goals" && (active === "goalDetail" || active === "goalStep1" || active === "goalStep2" || active === "goalStep3" || active === "goalCreated"));
           const Icon = t.icon;
           return (
-            <button key={t.key} onClick={() => go(t.key)} aria-label={t.label} aria-current={isActive ? "page" : undefined} className="flex flex-col items-center gap-1 flex-1 transition active:scale-95">
+            <button key={t.key} onClick={() => { playClick(); go(t.key); }} aria-label={t.label} aria-current={isActive ? "page" : undefined} className="flex flex-col items-center gap-1 flex-1 transition active:scale-95">
               <Icon
                 size={ICON}
                 color={isActive ? C.onPrimary : C.text2}
@@ -262,7 +306,7 @@ function TxRow({ t, onClick }: { t: Tx; onClick?: () => void }) {
   const TxIcon = t.icon;
   const amountLabel = `${positive ? "Crédit" : "Débit"} : ${Math.abs(t.amount).toFixed(2).replace(".", ",")}€`;
   return (
-    <button onClick={onClick} aria-label={`${t.merchant}, ${t.cat}, ${amountLabel}`} className="w-full flex items-center gap-3 py-3 transition active:scale-[0.99]">
+    <button onClick={() => { playClick(); onClick?.(); }} aria-label={`${t.merchant}, ${t.cat}, ${amountLabel}`} className="w-full flex items-center gap-3 py-3 transition active:scale-[0.99]">
       <div className="w-10 h-10 rounded-full flex items-center justify-center" aria-hidden="true" style={{ background: `${t.color}1A` }}>
         <TxIcon size={18} color={t.color} strokeWidth={STROKE} fill="none" />
       </div>
@@ -521,7 +565,7 @@ function HomeScreen({ go, firstName, goals }: { go: (s: Screen) => void; firstNa
           <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: C.primary, color: C.onPrimary, fontWeight: 600 }}>{initial}</div>
           <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Bonjour, {firstName || "Alex"} 👋</div>
         </div>
-        <button onClick={() => go("notifications")} aria-label="Notifications — nouvelles alertes disponibles" className="relative w-11 h-11 rounded-full flex items-center justify-center transition active:scale-95" style={{ background: C.surface, boxShadow: SHADOW }}>
+        <button onClick={() => { playClick(); go("notifications"); }} aria-label="Notifications — nouvelles alertes disponibles" className="relative w-11 h-11 rounded-full flex items-center justify-center transition active:scale-95" style={{ background: C.surface, boxShadow: SHADOW }}>
           <Bell size={ICON} strokeWidth={STROKE} color={C.text} fill="none" />
           <div aria-hidden="true" className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ background: C.primary }} />
         </button>
@@ -549,7 +593,7 @@ function HomeScreen({ go, firstName, goals }: { go: (s: Screen) => void; firstNa
               { icon: BarChart3, label: "Analyser" },
               { icon: MoreHorizontal, label: "Plus" },
             ].map((a) => (
-              <button key={a.label} className="h-16 rounded-[14px] flex flex-col items-center justify-center gap-1 transition active:scale-95 active:bg-[#F0FFAA]" style={{ background: C.surface, boxShadow: SHADOW }}>
+              <button key={a.label} onClick={() => playClick()} className="h-16 rounded-[14px] flex flex-col items-center justify-center gap-1 transition active:scale-95 active:bg-[#F0FFAA]" style={{ background: C.surface, boxShadow: SHADOW }}>
                 <a.icon size={ICON} strokeWidth={STROKE} color={C.text} fill="none" />
                 <span style={{ color: C.text, fontSize: 12 }}>{a.label}</span>
               </button>
@@ -558,7 +602,7 @@ function HomeScreen({ go, firstName, goals }: { go: (s: Screen) => void; firstNa
 
           <div className="flex items-center justify-between mt-6 mb-2">
             <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Transactions récentes</div>
-            <button onClick={() => go("transactions")} style={{ color: C.link, fontSize: 12, fontWeight: 500 }}>Voir tout</button>
+            <button onClick={() => { playClick(); go("transactions"); }} style={{ color: C.link, fontSize: 12, fontWeight: 500 }}>Voir tout</button>
           </div>
           {TXS.slice(0, 3).map((t, i) => (
             <div key={t.id} style={{ animation: `slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${i * 60}ms both` }}>
@@ -1198,11 +1242,39 @@ function GoalCreatedScreen({ go, goal, isFromSuggestion, onCreated }: {
   onCreated: () => void;
 }) {
   const monthly = goal ? goal.amount / goal.durationMonths : 0;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => { onCreated(); }, []);
+  useEffect(() => {
+    onCreated();
+    playCoins();
+
+    if (!canvasRef.current) return;
+    const fire = confetti.create(canvasRef.current, { resize: true, useWorker: false });
+
+    // 1ère salve : explosion centrale
+    fire({
+      particleCount: 130,
+      spread: 85,
+      origin: { x: 0.5, y: 0.38 },
+      colors: ["#C9FF27", "#0404E2", "#040707", "#FFFFFF", "#F2C94C"],
+      scalar: 1.1,
+      gravity: 1.1,
+    });
+
+    // 2ème salve : canons latéraux après 220 ms
+    setTimeout(() => {
+      fire({ particleCount: 70, angle: 55, spread: 65, origin: { x: 0.1, y: 0.5 }, colors: ["#C9FF27", "#FFFFFF", "#0404E2"], scalar: 1.0 });
+      fire({ particleCount: 70, angle: 125, spread: 65, origin: { x: 0.9, y: 0.5 }, colors: ["#C9FF27", "#040707", "#F2C94C"], scalar: 1.0 });
+    }, 220);
+  }, []);
 
   return (
-    <div className="flex flex-col h-full screen-fade" style={{ background: C.bg }}>
+    <div className="flex flex-col h-full screen-fade relative" style={{ background: C.bg }}>
+      {/* Canvas confetti — contenu dans le phone frame */}
+      <canvas
+        ref={canvasRef}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 10 }}
+      />
       <StatusBar />
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
         <div className="relative w-32 h-32 rounded-full flex items-center justify-center" style={{ background: C.successSoft, boxShadow: `0 0 60px ${C.success}55` }}>
