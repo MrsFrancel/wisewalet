@@ -145,7 +145,7 @@ function Header({ title, onBack, right, large }: { title: string; onBack?: () =>
           <IconBtn onClick={onBack}><ArrowLeft size={ICON} strokeWidth={STROKE} color={C.text} fill="none" /></IconBtn>
         )}
       </div>
-      <div style={{ color: C.text, fontWeight: large ? 700 : 600, fontSize: large ? 28 : 22, fontFamily: "Syne, sans-serif" }} className={large ? "flex-1" : "flex-1 text-center"}>
+      <div style={{ color: C.text, fontWeight: large ? 700 : 600, fontSize: large ? 28 : 22, fontFamily: "Brunson, sans-serif" }} className={large ? "flex-1" : "flex-1 text-center"}>
         {title}
       </div>
       <div className="w-auto min-w-9 flex justify-end">{right}</div>
@@ -248,8 +248,8 @@ function WelcomeScreen({ go }: { go: (s: Screen) => void }) {
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: C.primary }}>
           <div className="w-8 h-6 rounded-md border-2" style={{ borderColor: C.onPrimary }} />
         </div>
-        <div style={{ color: C.text, fontSize: 32, fontWeight: 800, letterSpacing: -0.5, fontFamily: "Syne, sans-serif" }}>WiseWallet</div>
-        <div className="mt-12 text-center" style={{ color: C.text, fontSize: 36, fontWeight: 800, fontFamily: "Syne, sans-serif", lineHeight: 1.1 }}>
+        <div style={{ color: C.text, fontSize: 32, fontWeight: 800, letterSpacing: -0.5, fontFamily: "Brunson, sans-serif" }}>WiseWallet</div>
+        <div className="mt-12 text-center" style={{ color: C.text, fontSize: 36, fontWeight: 800, fontFamily: "Brunson, sans-serif", lineHeight: 1.1 }}>
           Gérez. Épargnez. <span style={{ color: C.secondary }}>Atteignez.</span>
         </div>
         <div className="mt-4 text-center" style={{ color: C.text2, fontSize: 15 }}>
@@ -333,7 +333,7 @@ function HomeScreen({ go, firstName, goals }: { go: (s: Screen) => void; firstNa
       <div className="flex items-center justify-between px-6 pt-2 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: C.primary, color: C.onPrimary, fontWeight: 600 }}>{initial}</div>
-          <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>Bonjour, {firstName || "Alex"} 👋</div>
+          <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Bonjour, {firstName || "Alex"} 👋</div>
         </div>
         <button onClick={() => go("notifications")} className="relative w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95" style={{ background: C.surface, boxShadow: SHADOW }}>
           <Bell size={ICON} strokeWidth={STROKE} color={C.text} fill="none" />
@@ -344,7 +344,7 @@ function HomeScreen({ go, firstName, goals }: { go: (s: Screen) => void; firstNa
         <div className="px-6">
           <div className="rounded-[20px] p-5" style={{ background: C.card, boxShadow: SHADOW }}>
             <div style={{ color: C.text2, fontSize: 12 }}>Solde disponible</div>
-            <div style={{ color: C.text, fontSize: 32, fontWeight: 700, letterSpacing: -0.5 , fontFamily: "Syne, sans-serif" }} className="mt-2">
+            <div style={{ color: C.text, fontSize: 32, fontWeight: 700, letterSpacing: -0.5 , fontFamily: "Brunson, sans-serif" }} className="mt-2">
               {(balance / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
             </div>
             <div className="flex items-center justify-between mt-3">
@@ -371,7 +371,7 @@ function HomeScreen({ go, firstName, goals }: { go: (s: Screen) => void; firstNa
           </div>
 
           <div className="flex items-center justify-between mt-6 mb-2">
-            <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>Transactions récentes</div>
+            <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Transactions récentes</div>
             <button onClick={() => go("transactions")} style={{ color: C.link, fontSize: 12, fontWeight: 500 }}>Voir tout</button>
           </div>
           {TXS.slice(0, 3).map((t, i) => (
@@ -381,7 +381,7 @@ function HomeScreen({ go, firstName, goals }: { go: (s: Screen) => void; firstNa
           ))}
 
           <div className="flex items-center justify-between mt-6 mb-2">
-            <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>Mes objectifs</div>
+            <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Mes objectifs</div>
             <button onClick={() => go("goalStep1")} className="w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95" style={{ background: C.primary }}>
               <Plus size={16} strokeWidth={STROKE} color={C.onPrimary} />
             </button>
@@ -481,11 +481,11 @@ function TransactionsScreen({ go }: { go: (s: Screen) => void }) {
           <div className="rounded-[20px] p-4 flex justify-between mb-4" style={{ background: C.card, boxShadow: SHADOW }}>
             <div>
               <div style={{ color: C.text2, fontSize: 12 }}>Dépenses</div>
-              <div style={{ color: C.danger, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>-1 247 €</div>
+              <div style={{ color: C.danger, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>-1 247 €</div>
             </div>
             <div className="text-right">
               <div style={{ color: C.text2, fontSize: 12 }}>Revenus</div>
-              <div style={{ color: C.success, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>+2 100 €</div>
+              <div style={{ color: C.success, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>+2 100 €</div>
             </div>
           </div>
           {Object.entries(grouped).map(([date, items]) => (
@@ -520,8 +520,8 @@ function TxDetailScreen({ go }: { go: (s: Screen) => void }) {
           <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "#FF8A3D1A" }}>
             <span style={{ fontSize: 26 }}>🛒</span>
           </div>
-          <div style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Syne, sans-serif" }} className="mt-3">Carrefour City</div>
-          <div style={{ color: C.danger, fontSize: 32, fontWeight: 700 , fontFamily: "Syne, sans-serif" }} className="mt-1">-23,40 €</div>
+          <div style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }} className="mt-3">Carrefour City</div>
+          <div style={{ color: C.danger, fontSize: 32, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }} className="mt-1">-23,40 €</div>
           <div style={{ color: C.text2, fontSize: 12 }} className="mt-1">Aujourd'hui · 14h32</div>
           <div style={{ color: C.text2, fontSize: 12 }}>Paris, France</div>
         </div>
@@ -564,7 +564,7 @@ function GoalsScreen({ go, goals }: { go: (s: Screen) => void; goals: Goal[] }) 
     <div className="flex flex-col h-full screen-enter" style={{ background: C.bg }}>
       <StatusBar />
       <div className="px-6 pt-2 pb-2">
-        <div style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Syne, sans-serif" }}>Mes Objectifs</div>
+        <div style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }}>Mes Objectifs</div>
         <div style={{ color: C.text2, fontSize: 15 }} className="mt-1">Épargnez avec intention</div>
       </div>
       <ScreenBody>
@@ -572,7 +572,7 @@ function GoalsScreen({ go, goals }: { go: (s: Screen) => void; goals: Goal[] }) 
           <>
             <div className="px-6 mt-8 flex flex-col items-center text-center">
               <Target size={64} color={C.primary} strokeWidth={1} fill="none" />
-              <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Syne, sans-serif" }} className="mt-4">Vous n'avez pas encore d'objectif</div>
+              <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-4">Vous n'avez pas encore d'objectif</div>
               <div style={{ color: C.text2, fontSize: 13 }} className="mt-2 max-w-[280px]">
                 Les utilisateurs avec un objectif épargnent 3x plus
               </div>
@@ -589,7 +589,7 @@ function GoalsScreen({ go, goals }: { go: (s: Screen) => void; goals: Goal[] }) 
                   <button key={p.t} onClick={() => go("goalStep1")} className="rounded-[20px] p-4 shrink-0 text-left transition active:scale-[0.98]"
                     style={{ background: C.card, width: 160, boxShadow: SHADOW }}>
                     <PIcon size={32} color={C.secondary} strokeWidth={STROKE} fill="none" />
-                    <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }} className="mt-3">{p.t}</div>
+                    <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-3">{p.t}</div>
                     <div style={{ color: C.text2, fontSize: 12 }} className="mt-1">{p.a}</div>
                   </button>
                   );
@@ -635,12 +635,12 @@ function GoalStep1({ go, draft, setDraft }: { go: (s: Screen) => void; draft: Pa
       <ProgressHeader onBack={() => go("goals")} step={1} />
       <ScreenBody pad={false}>
         <div className="px-6">
-          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>Quel est votre objectif ?</div>
+          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Quel est votre objectif ?</div>
           <div style={{ color: C.text2, fontSize: 13, fontWeight: 500 }} className="mt-4 mb-2">Nom de l'objectif</div>
           <input value={draft.name || ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             placeholder="Ex: Voyage au Japon" className="w-full h-12 rounded-[12px] px-4 outline-none focus:border-[#C9FF27]"
             style={{ background: C.surface, color: C.text, border: `1px solid ${C.border}`, fontSize: 15 }} />
-          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }} className="mt-6">Choisissez une catégorie</div>
+          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-6">Choisissez une catégorie</div>
           <div className="grid grid-cols-3 gap-2 mt-3">
             {CATEGORIES.map((c) => {
               const sel = draft.category === c.l;
@@ -695,11 +695,11 @@ function GoalStep2({ go, draft, setDraft }: { go: (s: Screen) => void; draft: Pa
       <ProgressHeader onBack={() => go("goalStep1")} step={2} />
       <ScreenBody pad={false}>
         <div className="px-6">
-          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>Combien souhaitez-vous épargner ?</div>
+          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Combien souhaitez-vous épargner ?</div>
           <div className="text-center mt-4" style={{
             color: C.text, fontSize: 32, fontWeight: 700,
             opacity: hasVal ? 1 : 0.4,
-            fontFamily: "Syne, sans-serif",
+            fontFamily: "Brunson, sans-serif",
           }}>
             {hasVal ? `${amount.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} €` : "0 €"}
           </div>
@@ -707,12 +707,12 @@ function GoalStep2({ go, draft, setDraft }: { go: (s: Screen) => void; draft: Pa
             {keys.map((k) => (
               <button key={k} onClick={() => tap(k)}
                 className="h-14 rounded-[14px] flex items-center justify-center transition active:scale-95"
-                style={{ background: C.surface, color: C.text, fontSize: 20, fontWeight: 600, boxShadow: SHADOW , fontFamily: "Syne, sans-serif" }}>
+                style={{ background: C.surface, color: C.text, fontSize: 20, fontWeight: 600, boxShadow: SHADOW , fontFamily: "Brunson, sans-serif" }}>
                 {k === "<" ? <Delete size={18} strokeWidth={STROKE} color={C.text} /> : k}
               </button>
             ))}
           </div>
-          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }} className="mt-5">Pour quand ?</div>
+          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-5">Pour quand ?</div>
           <div className="flex gap-3 mt-3">
             <select value={month} onChange={(e) => setDraft({ ...draft, _month: Number(e.target.value) })}
               className="flex-1 h-11 rounded-full px-4 outline-none" style={{ background: C.surface, color: C.text, fontSize: 14, border: `1px solid ${C.border}` }}>
@@ -725,7 +725,7 @@ function GoalStep2({ go, draft, setDraft }: { go: (s: Screen) => void; draft: Pa
           </div>
           <div className="rounded-[20px] p-4 mt-4" style={{ background: C.card, boxShadow: SHADOW }}>
             <div style={{ color: C.text2, fontSize: 12 }}>À épargner par mois</div>
-            <div style={{ color: C.link, fontSize: 22, fontWeight: 600 , fontFamily: "Syne, sans-serif" }} className="mt-1">
+            <div style={{ color: C.link, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-1">
               {monthly.toLocaleString("fr-FR", { maximumFractionDigits: 2, minimumFractionDigits: 2 })} €
             </div>
             <div style={{ color: C.text2, fontSize: 12 }} className="mt-1">sur {monthsBetween} mois</div>
@@ -765,12 +765,12 @@ function GoalStep3({ go, draft, onCreate }: { go: (s: Screen) => void; draft: Pa
                 ? <draft.icon size={48} color={C.secondary} strokeWidth={1} fill="none" />
                 : <Target size={48} color={C.secondary} strokeWidth={1} fill="none" />}
             </div>
-            <div className="text-center mt-2" style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Syne, sans-serif" }}>{draft.name || "Mon objectif"}</div>
+            <div className="text-center mt-2" style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }}>{draft.name || "Mon objectif"}</div>
             <div className="h-px my-4" style={{ background: C.border }} />
             {rows.map(([l, v, p]) => (
               <div key={l} className="flex justify-between py-2">
                 <div style={{ color: C.text2, fontSize: 14 }}>{l}</div>
-                <div style={{ color: p ? C.link : C.text, fontSize: 16, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>{v}</div>
+                <div style={{ color: p ? C.link : C.text, fontSize: 16, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>{v}</div>
               </div>
             ))}
           </div>
@@ -802,7 +802,7 @@ function GoalCreatedScreen({ go, goal }: { go: (s: Screen) => void; goal?: Goal 
         <div className="relative w-32 h-32 rounded-full flex items-center justify-center" style={{ background: C.successSoft, boxShadow: `0 0 60px ${C.success}55` }}>
           <Trophy size={48} color={C.success} strokeWidth={1.5} fill="none" />
         </div>
-        <div style={{ color: C.text, fontSize: 32, fontWeight: 700 , fontFamily: "Syne, sans-serif" }} className="mt-6">Objectif créé !</div>
+        <div style={{ color: C.text, fontSize: 32, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }} className="mt-6">Objectif créé !</div>
         <div style={{ color: C.text2, fontSize: 15 }} className="mt-3 max-w-[300px]">
           Votre objectif {goal?.name} est lancé. Épargnez {monthly.toLocaleString("fr-FR", { maximumFractionDigits: 0 })}€/mois pour y arriver.
         </div>
@@ -843,7 +843,7 @@ function GoalDetailScreen({ go, goal }: { go: (s: Screen) => void; goal?: Goal }
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <goal.icon size={32} color={C.secondary} strokeWidth={STROKE} fill="none" />
-                <span style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>{goal.category}</span>
+                <span style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>{goal.category}</span>
               </div>
               <span className="px-3 py-1 rounded-full" style={{ background: C.successSoft, color: C.success, fontSize: 12, fontWeight: 600 }}>En cours</span>
             </div>
@@ -857,7 +857,7 @@ function GoalDetailScreen({ go, goal }: { go: (s: Screen) => void; goal?: Goal }
                     style={{ transition: "stroke-dasharray 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)" }} />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div style={{ color: C.text, fontSize: 24, fontWeight: 700 , fontFamily: "Syne, sans-serif" }}>{goal.saved} €</div>
+                  <div style={{ color: C.text, fontSize: 24, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }}>{goal.saved} €</div>
                   <div style={{ color: C.text2, fontSize: 11 }}>sur {goal.amount.toLocaleString("fr-FR")} €</div>
                   <div style={{ color: C.link, fontSize: 11, fontWeight: 600 }}>{pct}%</div>
                 </div>
@@ -876,7 +876,7 @@ function GoalDetailScreen({ go, goal }: { go: (s: Screen) => void; goal?: Goal }
               </div>
             ))}
           </div>
-          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }} className="mt-6">Historique des versements</div>
+          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-6">Historique des versements</div>
           <div className="text-center py-8" style={{ color: C.text2, fontSize: 13 }}>
             Aucun versement pour l'instant
           </div>
@@ -911,7 +911,7 @@ function AnalysisScreen({ go }: { go: (s: Screen) => void }) {
     <div className="flex flex-col h-full screen-enter" style={{ background: C.bg }}>
       <StatusBar />
       <div className="px-6 pt-2 pb-4">
-        <div style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Syne, sans-serif" }}>Analyse</div>
+        <div style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }}>Analyse</div>
       </div>
       <ScreenBody>
         <div className="px-6">
@@ -925,11 +925,11 @@ function AnalysisScreen({ go }: { go: (s: Screen) => void }) {
           <div className="rounded-[20px] p-4 flex justify-between" style={{ background: C.card, boxShadow: SHADOW }}>
             <div>
               <div style={{ color: C.text2, fontSize: 12 }}>Revenus</div>
-              <div style={{ color: C.success, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>+2 100 €</div>
+              <div style={{ color: C.success, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>+2 100 €</div>
             </div>
             <div className="text-right">
               <div style={{ color: C.text2, fontSize: 12 }}>Dépenses</div>
-              <div style={{ color: C.danger, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }}>-1 247 €</div>
+              <div style={{ color: C.danger, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>-1 247 €</div>
             </div>
           </div>
           <div className="mt-4 space-y-3">
@@ -951,7 +951,7 @@ function AnalysisScreen({ go }: { go: (s: Screen) => void }) {
               </div>
             ))}
           </div>
-          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }} className="mt-6">Évolution mensuelle</div>
+          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-6">Évolution mensuelle</div>
           <div className="rounded-[20px] p-4 mt-3 relative" style={{ background: C.card, boxShadow: SHADOW }}>
             {!hasData && (
               <div className="absolute inset-0 flex items-center justify-center" style={{ color: C.text2, fontSize: 13 }}>
@@ -1013,7 +1013,7 @@ function AnalysisScreen({ go }: { go: (s: Screen) => void }) {
               </div>
             </div>
           </div>
-          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Syne, sans-serif" }} className="mt-6 mb-2">Top catégories ce mois</div>
+          <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-6 mb-2">Top catégories ce mois</div>
           {segs.slice(0, 3).map((s) => (
             <div key={s.l} className="flex items-center gap-3 py-2">
               <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: `${s.c}1A` }}>
@@ -1052,7 +1052,7 @@ function NotificationsScreen({ go, firstName }: { go: (s: Screen) => void; first
       <StatusBar />
       <div className="flex items-center justify-between px-6 pt-2 pb-4">
         <IconBtn onClick={() => go("home")}><ArrowLeft size={ICON} strokeWidth={STROKE} color={C.text} fill="none" /></IconBtn>
-        <div style={{ color: C.text, fontSize: 22, fontWeight: 700 , fontFamily: "Syne, sans-serif" }}>Notifications</div>
+        <div style={{ color: C.text, fontSize: 22, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }}>Notifications</div>
         <button style={{ color: C.primary, fontSize: 12, fontWeight: 500 }}>Tout lu</button>
       </div>
       <ScreenBody pad={false}>
@@ -1095,14 +1095,14 @@ function ProfileScreen({ go, firstName }: { go: (s: Screen) => void; firstName: 
     <div className="flex flex-col h-full screen-enter" style={{ background: C.bg }}>
       <StatusBar />
       <div className="px-6 pt-2 pb-4">
-        <div style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Syne, sans-serif" }}>Mon Profil</div>
+        <div style={{ color: C.text, fontSize: 28, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }}>Mon Profil</div>
       </div>
       <ScreenBody>
         <div className="px-6">
           <div className="rounded-[20px] p-5 flex flex-col items-center" style={{ background: C.card, boxShadow: SHADOW }}>
             <div className="w-[72px] h-[72px] rounded-full flex items-center justify-center"
-              style={{ background: C.primary, color: C.onPrimary, fontSize: 28, fontWeight: 700 , fontFamily: "Syne, sans-serif" }}>{initial}</div>
-            <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Syne, sans-serif" }} className="mt-3">{firstName || "Alex"} Martin</div>
+              style={{ background: C.primary, color: C.onPrimary, fontSize: 28, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }}>{initial}</div>
+            <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-3">{firstName || "Alex"} Martin</div>
             <div style={{ color: C.text2, fontSize: 12 }}>{(firstName || "alex").toLowerCase()}@email.com</div>
           </div>
           <div style={{ color: C.text2, fontSize: 11, letterSpacing: 1 }} className="uppercase mt-6 mb-2">Mon compte</div>
