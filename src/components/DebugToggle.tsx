@@ -15,7 +15,7 @@ export function DebugToggle({ checked, onChange, label }: Props) {
         padding: "5px 0",
       }}
     >
-      <span style={{ fontSize: 12, color: "#1A1A2E", fontWeight: 500 }}>{label}</span>
+      <span style={{ fontSize: 12, color: "#040707", fontWeight: 500 }}>{label}</span>
       <button
         onClick={() => onChange(!checked)}
         aria-pressed={checked}
@@ -24,7 +24,7 @@ export function DebugToggle({ checked, onChange, label }: Props) {
           height: 22,
           borderRadius: 11,
           border: "none",
-          background: checked ? "#6C63FF" : "#E8E8F0",
+          background: checked ? "#0404E2" : "#E8E8E8",
           position: "relative",
           cursor: "pointer",
           transition: "background 0.2s ease",

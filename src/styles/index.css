@@ -63,22 +63,22 @@
 }
 
 /* ── Debug layout overrides ─────────────────────────────────────────────── */
-/* On desktop with the debug panel, the phone frame gets a premium dark border */
+/* On desktop with the debug panel, the phone frame gets a clean dark border */
 .debug-layout-right .phone-outer {
   background: transparent;
 }
 .debug-layout-right .phone-frame {
   box-shadow:
-    0 32px 80px rgba(0, 0, 0, 0.25),
-    0 0 0 8px #1A1A2E,
-    0 0 0 10px #2A2A3E;
+    0 32px 80px rgba(0, 0, 0, 0.20),
+    0 0 0 8px #040707,
+    0 0 0 10px #1a1a1a;
   border-radius: 44px;
 }
 
 /* Floating bubble pulse animation */
 @keyframes debugPulse {
-  0%, 100% { box-shadow: 0 4px 16px rgba(255, 77, 109, 0.5); }
-  50%       { box-shadow: 0 4px 24px rgba(255, 77, 109, 0.8), 0 0 0 8px rgba(255, 77, 109, 0.15); }
+  0%, 100% { box-shadow: 0 4px 16px rgba(4, 4, 7, 0.35); }
+  50%       { box-shadow: 0 4px 24px rgba(4, 4, 7, 0.5), 0 0 0 8px rgba(201, 255, 39, 0.2); }
 }
 
 /* Debug drawer slide-up animation */

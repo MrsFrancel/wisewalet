@@ -66,6 +66,7 @@ export function DebugLayout({ children, debugState, debugActions }: Props) {
 
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= BREAKPOINT);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"config" | "criteria">("config");
 
   useEffect(() => {
     const onResize = () => setIsDesktop(window.innerWidth >= BREAKPOINT);
@@ -90,13 +91,18 @@ export function DebugLayout({ children, debugState, debugActions }: Props) {
             width: PANEL_WIDTH,
             minWidth: 280,
             flexShrink: 0,
-            background: "#FFF8F9",
-            borderRight: "1.5px solid #FF4D6D",
+            background: "#F5F5F5",
+            borderRight: "1px solid #E8E8E8",
             overflowY: "auto",
-            padding: "20px 16px",
+            padding: "0 16px",
           }}
         >
-          <DebugPanel state={debugState} actions={debugActions} />
+          <DebugPanel
+            state={debugState}
+            actions={debugActions}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </div>
 
         {/* Right — iPhone frame */}
@@ -107,7 +113,7 @@ export function DebugLayout({ children, debugState, debugActions }: Props) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#F0F0F8",
+            background: "#E8E8E8",
             padding: 40,
           }}
         >
@@ -134,19 +140,20 @@ export function DebugLayout({ children, debugState, debugActions }: Props) {
           width: 44,
           height: 44,
           borderRadius: "50%",
-          background: "#FF4D6D",
+          background: "#040707",
           border: "none",
-          boxShadow: "0 4px 16px rgba(255,77,109,0.5)",
+          boxShadow: "0 4px 16px rgba(4,4,7,0.35)",
           zIndex: 1000,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: 20,
           cursor: "pointer",
           animation: "debugPulse 2s ease-in-out infinite",
         }}
       >
-        🛠
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9FF27" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
       </button>
 
       {/* Backdrop */}
@@ -170,23 +177,25 @@ export function DebugLayout({ children, debugState, debugActions }: Props) {
             bottom: 0,
             left: 0,
             right: 0,
-            background: "#FFF8F9",
+            background: "#F5F5F5",
             borderRadius: "20px 20px 0 0",
-            border: "1.5px solid #FF4D6D",
+            border: "1px solid #E8E8E8",
             borderBottom: "none",
-            padding: "16px 20px 40px",
+            padding: "0 16px 40px",
             maxHeight: "80vh",
             overflowY: "auto",
             zIndex: 1002,
             animation: "debugSlideUp 300ms ease-out",
           }}
         >
-          {/* Drag handle */}
-          <div style={{ width: 36, height: 4, background: "#FFE8EC", borderRadius: 2, margin: "0 auto 16px" }} />
+          {/* Drag handle (outside sticky context, always at top) */}
+          <div style={{ width: 36, height: 4, background: "#FFE8EC", borderRadius: 2, margin: "12px auto 4px" }} />
           <DebugPanel
             state={debugState}
             actions={debugActions}
             onClose={() => setDrawerOpen(false)}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
           />
         </div>
       )}

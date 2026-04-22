@@ -1029,7 +1029,10 @@ function GoalsScreen({
               </div>
               <div className="w-full mt-6">
                 <PrimaryButton onClick={() => { playClick(); handleCreateGoal(); }}>
-                  {cluster === "cluster_2" ? "Créer mon projet ✨" : "Reprendre mes projets"}
+                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                    {cluster === "cluster_2" ? "Créer mon projet" : "Reprendre mes projets"}
+                    {cluster === "cluster_2" && <Sparkles size={16} color={C.onPrimary} strokeWidth={2} />}
+                  </span>
                 </PrimaryButton>
               </div>
             </div>
