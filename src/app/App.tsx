@@ -526,7 +526,7 @@ function SignupScreen({ go, setFirstName, firstName }: { go: (s: Screen) => void
         <div className="px-6">
           <div className="mb-4">
             <label htmlFor="signup-prenom" style={{ color: C.text2, fontSize: 13, fontWeight: 500 }} className="mb-2 block">Prénom</label>
-            <input id="signup-prenom" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Alex"
+            <input id="signup-prenom" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Richard"
               className="w-full h-12 rounded-[12px] px-4 outline-none" style={inputStyle} />
           </div>
           <div className="mb-4">
@@ -582,7 +582,7 @@ function HomeScreen({ go, firstName, goals }: { go: (s: Screen) => void; firstNa
       <div className="flex items-center justify-between px-6 pt-2 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: C.primary, color: C.onPrimary, fontWeight: 600 }}>{initial}</div>
-          <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Bonjour, {firstName || "Alex"} 👋</div>
+          <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Bonjour, {firstName || "Richard"} 👋</div>
         </div>
         <button onClick={() => { playClick(); go("notifications"); }} aria-label="Notifications — nouvelles alertes disponibles" className="relative w-11 h-11 rounded-full flex items-center justify-center transition active:scale-95" style={{ background: C.surface, boxShadow: SHADOW }}>
           <Bell size={ICON} strokeWidth={STROKE} color={C.text} fill="none" />
@@ -1692,7 +1692,7 @@ function ProfileScreen({ go, firstName }: { go: (s: Screen) => void; firstName: 
           <div className="rounded-[20px] p-5 flex flex-col items-center" style={{ background: C.card, boxShadow: SHADOW }}>
             <div className="w-[72px] h-[72px] rounded-full flex items-center justify-center"
               style={{ background: C.primary, color: C.onPrimary, fontSize: 28, fontWeight: 700 , fontFamily: "Brunson, sans-serif" }}>{initial}</div>
-            <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-3">{firstName || "Alex"} Martin</div>
+            <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }} className="mt-3">{firstName || "Richard"} Martin</div>
             <div style={{ color: C.text2, fontSize: 12 }}>{(firstName || "alex").toLowerCase()}@email.com</div>
           </div>
           <div style={{ color: C.text2, fontSize: 11, letterSpacing: 1 }} className="uppercase mt-6 mb-2">Mon compte</div>
@@ -1719,7 +1719,7 @@ function ProfileScreen({ go, firstName }: { go: (s: Screen) => void; firstName: 
 // ---------- app ----------
 export default function App() {
   const [screen, setScreen] = useState<Screen>("welcome");
-  const [firstName, setFirstName] = useState("Alex");
+  const [firstName, setFirstName] = useState("Richard");
   const [goals, setGoals] = useState<Goal[]>([]);
   const [draft, setDraft] = useState<Partial<Goal> & { _amountStr?: string; _month?: number; _year?: number }>({});
   const [activeGoalId, setActiveGoalId] = useState<string | null>(null);

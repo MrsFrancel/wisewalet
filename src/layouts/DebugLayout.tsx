@@ -61,9 +61,6 @@ const BREAKPOINT = 768;
  * Excluded from production automatically via import.meta.env.DEV check.
  */
 export function DebugLayout({ children, debugState, debugActions }: Props) {
-  // In production builds this entire component returns children unchanged
-  if (!import.meta.env.DEV) return <>{children}</>;
-
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= BREAKPOINT);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"config" | "criteria">("config");
