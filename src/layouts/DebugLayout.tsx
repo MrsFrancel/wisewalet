@@ -132,7 +132,8 @@ export function DebugLayout({ children, debugState, debugActions }: Props) {
         aria-label="Ouvrir le debug panel"
         style={{
           position: "fixed",
-          top: 16,
+          top: "50%",
+          transform: "translateY(-50%)",
           left: 16,
           width: 44,
           height: 44,
